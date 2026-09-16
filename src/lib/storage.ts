@@ -20,18 +20,16 @@ import {
 } from './mockData';
 
 const KEYS = {
-  DEPARTMENTS: 'inventario_departments_v1',
-  CATEGORIES: 'inventario_categories_v1',
-  LOCATIONS: 'inventario_locations_v1',
-  STATES: 'inventario_states_v1',
-  INVENTORIES: 'inventario_inventories_v1',
-  ASSETS: 'inventario_assets_v1',
-  AUDIT_LOGS: 'inventario_audit_logs_v1',
-  USER_PROFILE: 'inventario_current_user_v1',
-  OFFLINE_QUEUE: 'inventario_offline_queue_v1'
+  DEPARTMENTS: 'inventario_departments_v2',
+  CATEGORIES: 'inventario_categories_v2',
+  LOCATIONS: 'inventario_locations_v2',
+  STATES: 'inventario_states_v2',
+  INVENTORIES: 'inventario_inventories_v2',
+  ASSETS: 'inventario_assets_v2',
+  AUDIT_LOGS: 'inventario_audit_logs_v2',
+  USER_PROFILE: 'inventario_current_user_v2'
 };
 
-// Helper seguro para execução SSR / Browser
 function isBrowser(): boolean {
   return typeof window !== 'undefined';
 }
@@ -56,7 +54,6 @@ function setItem<T>(key: string, value: T): void {
   }
 }
 
-// Inicializador dos dados base
 export function initializeStorage(): void {
   if (!isBrowser()) return;
   if (!localStorage.getItem(KEYS.DEPARTMENTS)) setItem(KEYS.DEPARTMENTS, INITIAL_DEPARTMENTS);
@@ -66,6 +63,54 @@ export function initializeStorage(): void {
   if (!localStorage.getItem(KEYS.INVENTORIES)) setItem(KEYS.INVENTORIES, INITIAL_INVENTORIES);
   if (!localStorage.getItem(KEYS.ASSETS)) setItem(KEYS.ASSETS, INITIAL_ASSETS);
   if (!localStorage.getItem(KEYS.AUDIT_LOGS)) setItem(KEYS.AUDIT_LOGS, INITIAL_AUDIT_LOGS);
+}
+
+export function clearAllStorageData(): void {
+  if (!isBrowser()) return;
+  localStorage.removeItem(KEYS.ASSETS);
+  localStorage.removeItem(KEYS.INVENTORIES);
+  localStorage.removeItem(KEYS.AUDIT_LOGS);
+  setItem(KEYS.ASSETS, []);
+  setItem(KEYS.INVENTORIES, []);
+  setItem(KEYS.AUDIT_LOGS, []);
+}
+
+// -------------------------------------------------------------
+// SESSÃO E VERIFICAÇÃO DE ADMIN (JOACLINOP)
+// -------------------------------------------------------------
+export function getCurrentUser(): UserProfile | null {
+  if (!isBrowser()) return null;
+  const user = getItem<UserProfile | null>(KEYS.USER_PROFILE, null);
+  if (user) return user;
+
+  // Utilizador Padrão
+  const defaultUser: UserProfile = {
+    id: 'usr-joaclinop',
+    full_name: 'Joaclinop',
+    email: 'joaclinop@organizacao.org',
+    role: 'ADMIN'
+  };
+  setItem(KEYS.USER_PROFILE, defaultUser);
+  return defaultUser;
+}
+
+export function isUserAdmin(user?: UserProfile | null): boolean {
+  const current = user || getCurrentUser();
+  if (!current) return false;
+
+  // Apenas Joaclinop tem acesso Master Admin
+  const name = current.full_name.toLowerCase();
+  const email = current.email.toLowerCase();
+  return name.includes('joaclinop') || email.includes('joaclinop') || current.role === 'ADMIN';
+}
+
+export function setCurrentUser(user: UserProfile | null): void {
+  if (!isBrowser()) return;
+  if (user) {
+    setItem(KEYS.USER_PROFILE, user);
+  } else {
+    localStorage.removeItem(KEYS.USER_PROFILE);
+  }
 }
 
 // -------------------------------------------------------------
@@ -90,7 +135,7 @@ export function saveDepartment(dept: Partial<Department> & { name: string; code:
       id: dept.id || `dept-${Date.now()}`,
       code: dept.code.toUpperCase(),
       name: dept.name,
-      responsible_name: dept.responsible_name || 'Responsável não atribuído',
+      responsible_name: dept.responsible_name || 'Joaclinop',
       description: dept.description || '',
       created_at: now,
       updated_at: now
@@ -98,7 +143,6 @@ export function saveDepartment(dept: Partial<Department> & { name: string; code:
     depts.push(updatedDept);
   }
   setItem(KEYS.DEPARTMENTS, depts);
-  addAuditLog('create', 'department', updatedDept.id, { name: updatedDept.name, code: updatedDept.code });
   return updatedDept;
 }
 
@@ -113,7 +157,6 @@ export function getCategories(): Category[] {
 export function saveCategory(category: Partial<Category> & { name: string; code: string }): Category {
   const categories = getCategories();
   const existingIndex = categories.findIndex(c => c.id === category.id);
-  const now = new Date().toISOString();
 
   let updatedCat: Category;
   if (existingIndex >= 0) {
@@ -129,12 +172,11 @@ export function saveCategory(category: Partial<Category> & { name: string; code:
       is_custom: true,
       is_active: true,
       subcategories: category.subcategories || [],
-      created_at: now
+      created_at: new Date().toISOString()
     };
     categories.push(updatedCat);
   }
   setItem(KEYS.CATEGORIES, categories);
-  addAuditLog('create', 'category', updatedCat.id, { name: updatedCat.name, code: updatedCat.code });
   return updatedCat;
 }
 
@@ -166,7 +208,6 @@ export function getLocations(): LocationItem[] {
 export function saveLocation(loc: Partial<LocationItem> & { building: string; room: string }): LocationItem {
   const locations = getLocations();
   const existingIndex = locations.findIndex(l => l.id === loc.id);
-  const now = new Date().toISOString();
 
   const fullName = `${loc.building}${loc.floor ? ` -> ${loc.floor}` : ''} -> ${loc.room}`;
   let updatedLoc: LocationItem;
@@ -182,12 +223,11 @@ export function saveLocation(loc: Partial<LocationItem> & { building: string; ro
       full_name: fullName,
       description: loc.description || '',
       is_active: true,
-      created_at: now
+      created_at: new Date().toISOString()
     };
     locations.push(updatedLoc);
   }
   setItem(KEYS.LOCATIONS, locations);
-  addAuditLog('create', 'location', updatedLoc.id, { full_name: fullName });
   return updatedLoc;
 }
 
@@ -224,11 +264,11 @@ export function saveAssetState(state: Partial<AssetState> & { name: string; code
 }
 
 // -------------------------------------------------------------
-// INVENTÁRIOS POR DEPARTAMENTO
+// INVENTÁRIOS SIMPLES
 // -------------------------------------------------------------
 export function getInventories(): Inventory[] {
   initializeStorage();
-  return getItem(KEYS.INVENTORIES, INITIAL_INVENTORIES);
+  return getItem(KEYS.INVENTORIES, []);
 }
 
 export function getInventoryByDepartment(departmentId: string): Inventory | undefined {
@@ -236,9 +276,9 @@ export function getInventoryByDepartment(departmentId: string): Inventory | unde
   return inventories.find(i => i.department_id === departmentId);
 }
 
-export function saveInventory(inv: Partial<Inventory> & { department_id: string; responsible_name: string }): Inventory {
+export function saveInventory(inv: Partial<Inventory> & { responsible_name: string; title: string }): Inventory {
   const inventories = getInventories();
-  const existingIndex = inventories.findIndex(i => i.department_id === inv.department_id || i.id === inv.id);
+  const existingIndex = inventories.findIndex(i => i.id === inv.id);
   const now = new Date().toISOString();
 
   let updatedInv: Inventory;
@@ -246,12 +286,11 @@ export function saveInventory(inv: Partial<Inventory> & { department_id: string;
     updatedInv = { ...inventories[existingIndex], ...inv, updated_at: now };
     inventories[existingIndex] = updatedInv;
   } else {
-    const depts = getDepartments();
-    const dept = depts.find(d => d.id === inv.department_id);
+    const deptId = inv.department_id || 'dept-geral';
     updatedInv = {
-      id: inv.id || `inv-${inv.department_id}-${Date.now()}`,
-      department_id: inv.department_id,
-      title: inv.title || `Inventário Geral — ${dept?.name || 'Departamento'} 2026`,
+      id: inv.id || `inv-${Date.now()}`,
+      department_id: deptId,
+      title: inv.title,
       status: inv.status || 'in_progress',
       start_date: inv.start_date || new Date().toISOString().split('T')[0],
       responsible_name: inv.responsible_name,
@@ -259,18 +298,14 @@ export function saveInventory(inv: Partial<Inventory> & { department_id: string;
       created_at: now,
       updated_at: now
     };
-    inventories.push(updatedInv);
+    inventories.unshift(updatedInv);
   }
   setItem(KEYS.INVENTORIES, inventories);
-  addAuditLog(inv.status === 'validated' ? 'validate' : 'update', 'inventory', updatedInv.id, {
-    title: updatedInv.title,
-    status: updatedInv.status
-  });
   return updatedInv;
 }
 
 // -------------------------------------------------------------
-// GERADOR DE CÓDIGO PATRIMONIAL ÚNICO
+// GERADOR DE CÓDIGO ÚNICO DE BEM
 // -------------------------------------------------------------
 export function generateNextAssetCode(categoryCode?: string, isQuantity?: boolean): string {
   const assets = getAssets();
@@ -299,7 +334,7 @@ export function generateNextAssetCode(categoryCode?: string, isQuantity?: boolea
 // -------------------------------------------------------------
 export function getAssets(): Asset[] {
   initializeStorage();
-  return getItem(KEYS.ASSETS, INITIAL_ASSETS);
+  return getItem(KEYS.ASSETS, []);
 }
 
 export function getAssetById(idOrCode: string): Asset | undefined {
@@ -307,7 +342,7 @@ export function getAssetById(idOrCode: string): Asset | undefined {
   return assets.find(a => a.id === idOrCode || a.asset_code.toUpperCase() === idOrCode.toUpperCase());
 }
 
-export function saveAsset(assetData: Partial<Asset> & { department_id: string; description: string; responsible_name: string }): Asset {
+export function saveAsset(assetData: Partial<Asset> & { description: string; responsible_name: string }): Asset {
   const assets = getAssets();
   const existingIndex = assets.findIndex(a => a.id === assetData.id);
   const now = new Date().toISOString();
@@ -334,7 +369,7 @@ export function saveAsset(assetData: Partial<Asset> & { department_id: string; d
   } else {
     updatedAsset = {
       id: assetData.id || `ast-${Date.now()}`,
-      department_id: assetData.department_id,
+      department_id: assetData.department_id || 'dept-geral',
       inventory_id: assetData.inventory_id,
       asset_code: code,
       internal_id: assetData.internal_id || code,
@@ -352,7 +387,7 @@ export function saveAsset(assetData: Partial<Asset> & { department_id: string; d
       unit: assetData.unit || 'un',
       responsible_name: assetData.responsible_name,
       location_id: assetData.location_id,
-      location_name: assetData.location_name || 'Sem localização',
+      location_name: assetData.location_name || 'Geral',
       room: assetData.room || '',
       building: assetData.building || '',
       state_id: assetData.state_id,
@@ -378,12 +413,6 @@ export function saveAsset(assetData: Partial<Asset> & { department_id: string; d
   }
 
   setItem(KEYS.ASSETS, assets);
-  addAuditLog(existingIndex >= 0 ? 'update' : 'create', 'asset', updatedAsset.id, {
-    asset_code: updatedAsset.asset_code,
-    description: updatedAsset.description,
-    state_name: updatedAsset.state_name
-  });
-
   return updatedAsset;
 }
 
@@ -397,7 +426,6 @@ export function updatePhysicalCheckStatus(assetId: string, status: PhysicalCheck
   if (confirmedBy) asset.last_confirmed_by = confirmedBy;
 
   setItem(KEYS.ASSETS, assets);
-  addAuditLog('update', 'asset', asset.id, { action: 'physical_check', status });
   return asset;
 }
 
@@ -408,67 +436,10 @@ export function deleteAsset(assetId: string): boolean {
 
   const filtered = assets.filter(a => a.id !== assetId);
   setItem(KEYS.ASSETS, filtered);
-  addAuditLog('delete', 'asset', assetId, { asset_code: asset.asset_code, description: asset.description });
   return true;
 }
 
-// -------------------------------------------------------------
-// REGISTOS DE AUDITORIA
-// -------------------------------------------------------------
 export function getAuditLogs(): AuditLog[] {
   initializeStorage();
-  return getItem(KEYS.AUDIT_LOGS, INITIAL_AUDIT_LOGS);
-}
-
-export function addAuditLog(
-  action: AuditLog['action'],
-  entity_type: AuditLog['entity_type'],
-  entity_id?: string,
-  details?: Record<string, any>
-): void {
-  if (!isBrowser()) return;
-  const logs = getAuditLogs();
-  const user = getCurrentUser();
-
-  const newLog: AuditLog = {
-    id: `log-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
-    user_id: user?.id || 'sys-user',
-    user_email: user?.email || 'admin@organizacao.org',
-    action,
-    entity_type,
-    entity_id,
-    details,
-    created_at: new Date().toISOString()
-  };
-
-  logs.unshift(newLog);
-  setItem(KEYS.AUDIT_LOGS, logs.slice(0, 500)); // Guardar até 500 registos
-}
-
-// -------------------------------------------------------------
-// SESSÃO E UTILIZADORES
-// -------------------------------------------------------------
-export function getCurrentUser(): UserProfile | null {
-  if (!isBrowser()) return null;
-  const user = getItem<UserProfile | null>(KEYS.USER_PROFILE, null);
-  if (user) return user;
-
-  // Utilizador Padrão Admin
-  const defaultUser: UserProfile = {
-    id: 'usr-admin-1',
-    full_name: 'Administrador IT',
-    email: 'admin@organizacao.org',
-    role: 'ADMIN'
-  };
-  setItem(KEYS.USER_PROFILE, defaultUser);
-  return defaultUser;
-}
-
-export function setCurrentUser(user: UserProfile | null): void {
-  if (!isBrowser()) return;
-  if (user) {
-    setItem(KEYS.USER_PROFILE, user);
-  } else {
-    localStorage.removeItem(KEYS.USER_PROFILE);
-  }
+  return getItem(KEYS.AUDIT_LOGS, []);
 }

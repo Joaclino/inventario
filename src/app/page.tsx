@@ -2,192 +2,254 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { getDepartments, getInventories, getAssets } from '@/lib/storage';
-import { Department, Inventory, Asset } from '@/types/inventory';
+import { useRouter } from 'next/navigation';
+import { getInventories, saveInventory, getAssets, clearAllStorageData, getCurrentUser, isUserAdmin } from '@/lib/storage';
+import { Inventory, Asset, UserProfile } from '@/types/inventory';
 import {
-  Boxes,
-  Building2,
   PlusCircle,
-  Search,
-  ShieldCheck,
+  Package,
+  User,
   CheckCircle2,
   Clock,
-  ArrowRight,
-  QrCode,
+  ChevronRight,
   Sparkles,
-  Layers,
-  ChevronRight
+  Plus,
+  Trash2,
+  Boxes,
+  FileSpreadsheet,
+  X
 } from 'lucide-react';
 
 export default function HomePage() {
-  const [departments, setDepartments] = useState<Department[]>([]);
+  const router = useRouter();
   const [inventories, setInventories] = useState<Inventory[]>([]);
   const [assets, setAssets] = useState<Asset[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [user, setUser] = useState<UserProfile | null>(null);
+
+  // Modal para criar novo inventário em 2 segundos
+  const [modalOpen, setModalOpen] = useState(false);
+  const [responsibleName, setResponsibleName] = useState('');
+  const [inventoryTitle, setInventoryTitle] = useState('');
 
   useEffect(() => {
-    setDepartments(getDepartments());
-    setInventories(getInventories());
-    setAssets(getAssets());
+    loadData();
+    const currentUser = getCurrentUser();
+    setUser(currentUser);
+    if (currentUser) setResponsibleName(currentUser.full_name);
   }, []);
 
-  const getDeptStatus = (deptId: string) => {
-    const inv = inventories.find(i => i.department_id === deptId);
-    return inv ? inv.status : 'in_progress';
+  const loadData = () => {
+    setInventories(getInventories());
+    setAssets(getAssets());
   };
 
-  const getDeptAssetCount = (deptId: string) => {
-    return assets.filter(a => a.department_id === deptId).length;
+  const handleCreateInventory = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!responsibleName || !inventoryTitle) return;
+
+    const newInv = saveInventory({
+      department_id: `dept-${Date.now()}`,
+      title: inventoryTitle,
+      responsible_name: responsibleName,
+      status: 'in_progress',
+      start_date: new Date().toISOString().split('T')[0]
+    });
+
+    setModalOpen(false);
+    setInventoryTitle('');
+    loadData();
+
+    // Redireciona imediatamente para adicionar o primeiro item de forma simples!
+    router.push(`/inventory/${newInv.department_id}/new-asset`);
   };
+
+  const handleResetData = () => {
+    if (confirm('Tem a certeza que deseja apagar todos os inventários e itens registados para começar do zero?')) {
+      clearAllStorageData();
+      loadData();
+    }
+  };
+
+  const isAdmin = isUserAdmin(user);
 
   return (
-    <div className="space-y-8 animate-fade-in pb-12">
-      {/* Banner Principal Mobile First */}
-      <div className="relative rounded-3xl bg-gradient-to-br from-blue-950 via-slate-900 to-slate-900 border border-blue-500/20 p-6 sm:p-8 overflow-hidden shadow-2xl">
-        <div className="absolute top-0 right-0 -mt-12 -mr-12 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
-
-        <div className="relative z-10 max-w-2xl">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-semibold mb-4">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Sistema Institucional Mobile First</span>
-          </div>
-
-          <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight mb-3">
-            Inventário Geral de <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">Bens e Ativos</span>
-          </h1>
-
-          <p className="text-sm sm:text-base text-slate-300 leading-relaxed mb-6">
-            Levantamento físico simplificado para telemóveis. Escolha o seu departamento para iniciar a contagem ou registrar novos ativos.
-          </p>
-
-          {/* Atalhos Rápidos */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Link
-              href="/departments"
-              className="w-full py-3.5 px-5 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-bold rounded-2xl text-sm transition-all shadow-lg shadow-blue-600/30 flex items-center justify-center space-x-2 group"
-            >
-              <Building2 className="w-5 h-5" />
-              <span>Abrir Meu Departamento</span>
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
-
-            <Link
-              href="/admin/assets"
-              className="w-full py-3.5 px-5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold rounded-2xl text-sm transition-all flex items-center justify-center space-x-2"
-            >
-              <Search className="w-5 h-5 text-blue-400" />
-              <span>Pesquisa Rápida / QR Code</span>
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      {/* Cartões Estatísticos Rápidos */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl">
-          <div className="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">Total de Bens</div>
-          <div className="text-2xl font-extrabold text-white">{assets.length}</div>
-          <div className="text-[11px] text-emerald-400 mt-1 flex items-center">
-            <Layers className="w-3 h-3 mr-1" />
-            {assets.reduce((sum, a) => sum + (a.quantity || 1), 0)} itens em stock
-          </div>
+    <div className="max-w-4xl mx-auto space-y-8 animate-fade-in pb-16">
+      {/* BANNER PRINCIPAL ULTRA SIMPLES */}
+      <div className="bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 text-center relative overflow-hidden shadow-2xl">
+        <div className="w-16 h-16 rounded-3xl bg-gradient-to-tr from-emerald-500 to-blue-600 flex items-center justify-center text-white mx-auto shadow-xl shadow-emerald-500/20 mb-4">
+          <Boxes className="w-9 h-9" />
         </div>
 
-        <div className="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl">
-          <div className="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">Departamentos</div>
-          <div className="text-2xl font-extrabold text-cyan-400">{departments.length}</div>
-          <div className="text-[11px] text-slate-400 mt-1">Ativos registrados</div>
-        </div>
+        <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
+          Inventário <span className="text-emerald-400">Simples & Rápido</span>
+        </h1>
+        <p className="text-xs sm:text-sm text-slate-300 max-w-lg mx-auto mt-2 leading-relaxed">
+          Sem burocracia nem complicações. Crie o seu inventário, tire fotos aos objetos e guarde tudo em segundos no telemóvel!
+        </p>
 
-        <div className="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl">
-          <div className="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">Concluídos</div>
-          <div className="text-2xl font-extrabold text-emerald-400">
-            {inventories.filter(i => i.status === 'completed' || i.status === 'validated').length}
-          </div>
-          <div className="text-[11px] text-emerald-400 mt-1">Prontos para validação</div>
-        </div>
-
-        <div className="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl">
-          <div className="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">Em Andamento</div>
-          <div className="text-2xl font-extrabold text-amber-400">
-            {inventories.filter(i => i.status === 'in_progress').length}
-          </div>
-          <div className="text-[11px] text-amber-400 mt-1">Levantamento ativo</div>
-        </div>
-      </div>
-
-      {/* Lista de Departamentos para Acesso Rápido */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-lg font-bold text-white tracking-tight">Departamentos da Organização</h2>
-            <p className="text-xs text-slate-400">Selecione o seu departamento para efetuar o inventário</p>
-          </div>
-          <Link
-            href="/departments"
-            className="text-xs font-semibold text-blue-400 hover:text-blue-300 flex items-center space-x-1"
+        {/* BOTÃO PRINCIPAL GIGANTE — CRIAR INVENTÁRIO */}
+        <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
+          <button
+            onClick={() => setModalOpen(true)}
+            className="w-full sm:w-auto py-4 px-8 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-extrabold rounded-2xl text-base transition-all shadow-xl shadow-emerald-600/30 flex items-center justify-center space-x-3 transform active:scale-95"
           >
-            <span>Ver Todos</span>
-            <ChevronRight className="w-4 h-4" />
-          </Link>
+            <PlusCircle className="w-6 h-6" />
+            <span>[ ➕ CRIAR NOVO INVENTÁRIO ]</span>
+          </button>
+        </div>
+      </div>
+
+      {/* LISTA DE INVENTÁRIOS CRIADOS */}
+      <div>
+        <div className="flex items-center justify-between mb-4 px-1">
+          <div>
+            <h2 className="text-lg font-extrabold text-white tracking-tight">Inventários Ativos</h2>
+            <p className="text-xs text-slate-400">Clique para registar itens ou consultar a lista de objetos</p>
+          </div>
+
+          {isAdmin && inventories.length > 0 && (
+            <button
+              onClick={handleResetData}
+              className="text-xs font-semibold text-red-400 hover:text-red-300 flex items-center space-x-1"
+              title="Apagar dados e começar do zero"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>Limpar TUDO</span>
+            </button>
+          )}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {departments.map((dept) => {
-            const count = getDeptAssetCount(dept.id);
-            const status = getDeptStatus(dept.id);
+        {inventories.length === 0 ? (
+          <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-10 text-center text-slate-400 space-y-4">
+            <Package className="w-12 h-12 mx-auto text-slate-600" />
+            <div>
+              <h3 className="text-base font-bold text-white">Nenhum inventário criado ainda</h3>
+              <p className="text-xs text-slate-400 max-w-sm mx-auto mt-1">
+                Clique no botão verde acima para criar o seu primeiro inventário de forma super fácil!
+              </p>
+            </div>
+            <button
+              onClick={() => setModalOpen(true)}
+              className="py-3 px-6 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-2xl text-xs transition-all inline-flex items-center space-x-2 shadow-lg shadow-emerald-600/20"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Criar O Meu Primeiro Inventário</span>
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {inventories.map((inv) => {
+              const deptAssets = assets.filter(a => a.department_id === inv.department_id);
+              const totalItems = deptAssets.reduce((sum, a) => sum + (a.quantity || 1), 0);
 
-            return (
-              <Link
-                key={dept.id}
-                href={`/inventory/${dept.id}`}
-                className="bg-slate-900 border border-slate-800 hover:border-blue-500/50 p-5 rounded-2xl transition-all duration-200 hover:shadow-xl hover:shadow-blue-500/5 group flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="font-mono text-xs font-bold text-blue-400 bg-blue-950/80 px-2.5 py-1 rounded-lg border border-blue-500/30">
-                      {dept.code}
-                    </span>
-
-                    {status === 'validated' && (
-                      <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/30 flex items-center space-x-1">
-                        <CheckCircle2 className="w-3 h-3" />
-                        <span>Validado</span>
-                      </span>
-                    )}
-                    {status === 'completed' && (
-                      <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center space-x-1">
-                        <CheckCircle2 className="w-3 h-3" />
-                        <span>Concluído</span>
-                      </span>
-                    )}
-                    {status === 'in_progress' && (
-                      <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/30 flex items-center space-x-1">
+              return (
+                <div
+                  key={inv.id}
+                  className="bg-slate-900 border border-slate-800 hover:border-emerald-500/50 rounded-3xl p-5 space-y-4 transition-all duration-200 shadow-xl flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-bold px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center space-x-1">
                         <Clock className="w-3 h-3" />
-                        <span>Em andamento</span>
+                        <span>Em Curso</span>
                       </span>
-                    )}
+
+                      <span className="text-xs font-bold text-white bg-slate-950 px-2.5 py-1 rounded-xl border border-slate-800">
+                        {totalItems} item(ns)
+                      </span>
+                    </div>
+
+                    <h3 className="text-lg font-extrabold text-white leading-snug">{inv.title}</h3>
+                    <p className="text-xs text-slate-400 mt-1">
+                      Responsável: <span className="text-white font-semibold">{inv.responsible_name}</span>
+                    </p>
                   </div>
 
-                  <h3 className="text-base font-bold text-white group-hover:text-blue-400 transition-colors mb-1">
-                    {dept.name}
-                  </h3>
-                  <p className="text-xs text-slate-400 mb-4 line-clamp-2">
-                    Resp: <span className="text-slate-300 font-medium">{dept.responsible_name}</span>
-                  </p>
-                </div>
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800">
+                    <Link
+                      href={`/inventory/${inv.department_id}/new-asset`}
+                      className="py-3 px-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-2xl text-xs text-center flex items-center justify-center space-x-1 shadow-lg shadow-emerald-600/20 transition-all"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>➕ Registar Item</span>
+                    </Link>
 
-                <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
-                  <span className="text-slate-400 font-semibold">{count} bens registrados</span>
-                  <span className="text-blue-400 font-bold group-hover:translate-x-1 transition-transform flex items-center">
-                    Entrar <ChevronRight className="w-4 h-4 ml-0.5" />
-                  </span>
+                    <Link
+                      href={`/inventory/${inv.department_id}`}
+                      className="py-3 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold rounded-2xl text-xs text-center flex items-center justify-center space-x-1 transition-all"
+                    >
+                      <Package className="w-4 h-4 text-blue-400" />
+                      <span>📋 Ver Lista</span>
+                    </Link>
+                  </div>
                 </div>
-              </Link>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
+
+      {/* MODAL ULTRA SIMPLES: CRIAR NOVO INVENTÁRIO */}
+      {modalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
+          <div className="bg-slate-900 border border-slate-700 rounded-3xl max-w-md w-full p-6 shadow-2xl relative">
+            <button
+              onClick={() => setModalOpen(false)}
+              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white rounded-full bg-slate-800"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="text-center mb-6">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mx-auto mb-2">
+                <PlusCircle className="w-7 h-7" />
+              </div>
+              <h2 className="text-xl font-extrabold text-white">Criar Novo Inventário</h2>
+              <p className="text-xs text-slate-400 mt-1">Preencha estes 2 campos simples para começar</p>
+            </div>
+
+            <form onSubmit={handleCreateInventory} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
+                  1. O Seu Nome (Responsável) *
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ex: João Pereira, Maria Fernandes..."
+                  value={responsibleName}
+                  onChange={(e) => setResponsibleName(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-2xl px-4 py-3.5 text-sm text-white focus:outline-none focus:border-emerald-500 font-semibold"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
+                  2. Nome / Local do Inventário *
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ex: Inventário da Cozinha, Armazém, Casa 2..."
+                  value={inventoryTitle}
+                  onChange={(e) => setInventoryTitle(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-2xl px-4 py-3.5 text-sm text-white focus:outline-none focus:border-emerald-500 font-semibold"
+                  required
+                />
+              </div>
+
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  className="w-full py-4 px-6 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-2xl text-sm shadow-xl shadow-emerald-600/30 transition-all flex items-center justify-center space-x-2"
+                >
+                  <Sparkles className="w-5 h-5" />
+                  <span>[ 🚀 INICIAR LEVANTAMENTO ]</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

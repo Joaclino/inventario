@@ -1,36 +1,26 @@
 import { Asset, Department, Category, LocationItem, AssetState, Inventory, AuditLog } from '@/types/inventory';
 
 export const INITIAL_DEPARTMENTS: Department[] = [
-  { id: 'dept-fin', code: 'FIN', name: 'Finanças', responsible_name: 'João Pereira', description: 'Departamento Financeiro e Contabilidade' },
-  { id: 'dept-ope', code: 'OPE', name: 'Operações', responsible_name: 'Maria Fernandes', description: 'Operações no Terreno e Projetos' },
-  { id: 'dept-it', code: 'IT', name: 'Tecnologias de Informação', responsible_name: 'Pedro IT', description: 'Gestão da Infraestrutura Tecnológica' },
-  { id: 'dept-rh', code: 'RH', name: 'Recursos Humanos', responsible_name: 'Ana Santos', description: 'Gestão de Talentos e Pessoas' },
-  { id: 'dept-log', code: 'LOG', name: 'Logística & Armazém', responsible_name: 'Manuel Costa', description: 'Gestão de Frotas e Armazenamento' },
-  { id: 'dept-alo', code: 'ALO', name: 'Alojamento & Residências', responsible_name: 'Teresa Bento', description: 'Gestão de Casas e Quartos' },
-  { id: 'dept-coz', code: 'COZ', name: 'Cozinha Geral & Refeitório', responsible_name: 'Lúcia Martins', description: 'Serviço de Restauração da Organização' },
-  { id: 'dept-adm', code: 'ADM', name: 'Administração Central', responsible_name: 'Carlos Silva', description: 'Direção Executiva' }
+  { id: 'dept-geral', code: 'GERAL', name: 'Geral / Organização', responsible_name: 'Joaclinop', description: 'Inventário Geral' },
+  { id: 'dept-fin', code: 'FIN', name: 'Finanças', responsible_name: 'Responsável Finanças', description: 'Departamento Financeiro' },
+  { id: 'dept-ope', code: 'OPE', name: 'Operações', responsible_name: 'Responsável Operações', description: 'Operações e Terreno' },
+  { id: 'dept-it', code: 'IT', name: 'Informática & TI', responsible_name: 'Joaclinop', description: 'Tecnologia da Informação' },
+  { id: 'dept-coz', code: 'COZ', name: 'Cozinha & Refeitório', responsible_name: 'Responsável Cozinha', description: 'Área de Alimentação' },
+  { id: 'dept-alo', code: 'ALO', name: 'Alojamento & Quartos', responsible_name: 'Responsável Alojamento', description: 'Quartos e Residências' }
 ];
 
 export const INITIAL_CATEGORIES: Category[] = [
   {
     id: 'cat-tec',
-    name: 'Tecnologia',
+    name: 'Tecnologia & Eletrónicos',
     code: 'TEC',
     icon: 'Laptop',
-    description: 'Equipamentos informáticos, eletrónicos e telecomunicações',
+    description: 'Computadores, telemóveis, televisores, impressoras',
     subcategories: [
-      { id: 'sub-lap', category_id: 'cat-tec', name: 'Laptop' },
-      { id: 'sub-des', category_id: 'cat-tec', name: 'Desktop' },
-      { id: 'sub-mon', category_id: 'cat-tec', name: 'Monitor' },
-      { id: 'sub-imp', category_id: 'cat-tec', name: 'Impressora' },
-      { id: 'sub-pro', category_id: 'cat-tec', name: 'Projetor' },
-      { id: 'sub-tel', category_id: 'cat-tec', name: 'Telefone' },
-      { id: 'sub-tab', category_id: 'cat-tec', name: 'Tablet' },
-      { id: 'sub-rou', category_id: 'cat-tec', name: 'Router' },
-      { id: 'sub-swi', category_id: 'cat-tec', name: 'Switch' },
-      { id: 'sub-ups', category_id: 'cat-tec', name: 'UPS' },
-      { id: 'sub-cam', category_id: 'cat-tec', name: 'Câmara' },
-      { id: 'sub-tv',  category_id: 'cat-tec', name: 'Televisor' }
+      { id: 'sub-lap', category_id: 'cat-tec', name: 'Laptop / Computador' },
+      { id: 'sub-tel', category_id: 'cat-tec', name: 'Telefone / Telemóvel' },
+      { id: 'sub-tv',  category_id: 'cat-tec', name: 'Televisor / Ecrã' },
+      { id: 'sub-imp', category_id: 'cat-tec', name: 'Impressora / Aparelho' }
     ]
   },
   {
@@ -38,107 +28,43 @@ export const INITIAL_CATEGORIES: Category[] = [
     name: 'Mobiliário',
     code: 'MOB',
     icon: 'Armchair',
-    description: 'Mesas, cadeiras, armários e mobiliário de escritório/residencial',
+    description: 'Mesas, cadeiras, armários, camas, sofás',
     subcategories: [
-      { id: 'sub-mes', category_id: 'cat-mob', name: 'Mesa' },
-      { id: 'sub-cad', category_id: 'cat-mob', name: 'Cadeira' },
-      { id: 'sub-arm', category_id: 'cat-mob', name: 'Armário' },
-      { id: 'sub-est', category_id: 'cat-mob', name: 'Estante' },
-      { id: 'sub-sof', category_id: 'cat-mob', name: 'Sofá' },
-      { id: 'sub-sec', category_id: 'cat-mob', name: 'Secretária' },
-      { id: 'sub-cam-m', category_id: 'cat-mob', name: 'Cama' },
-      { id: 'sub-bel', category_id: 'cat-mob', name: 'Beliche' },
-      { id: 'sub-com', category_id: 'cat-mob', name: 'Cómoda' },
-      { id: 'sub-cri', category_id: 'cat-mob', name: 'Criado-mudo' }
+      { id: 'sub-mes', category_id: 'cat-mob', name: 'Mesa / Secretária' },
+      { id: 'sub-cad', category_id: 'cat-mob', name: 'Cadeira / Banco' },
+      { id: 'sub-arm', category_id: 'cat-mob', name: 'Armário / Estante' },
+      { id: 'sub-cam', category_id: 'cat-mob', name: 'Cama / Colchão' }
     ]
   },
   {
     id: 'cat-coz',
-    name: 'Cozinha',
+    name: 'Cozinha & Louça',
     code: 'COZ',
     icon: 'Utensils',
-    description: 'Eletrodomésticos, louça, pratos, talheres e utensílios',
+    description: 'Frigoríficos, fogões, panelas, pratos, copos, talheres',
     subcategories: [
-      { id: 'sub-fri', category_id: 'cat-coz', name: 'Frigorífico' },
-      { id: 'sub-con', category_id: 'cat-coz', name: 'Congelador' },
-      { id: 'sub-fog', category_id: 'cat-coz', name: 'Fogão' },
-      { id: 'sub-mic', category_id: 'cat-coz', name: 'Micro-ondas' },
-      { id: 'sub-maq', category_id: 'cat-coz', name: 'Máquina de lavar' },
-      { id: 'sub-liq', category_id: 'cat-coz', name: 'Liquidificador' },
-      { id: 'sub-caf', category_id: 'cat-coz', name: 'Cafeteira' },
-      { id: 'sub-pan', category_id: 'cat-coz', name: 'Panelas' },
-      { id: 'sub-pra', category_id: 'cat-coz', name: 'Pratos' },
-      { id: 'sub-cop', category_id: 'cat-coz', name: 'Copos' },
-      { id: 'sub-tal', category_id: 'cat-coz', name: 'Talheres' },
-      { id: 'sub-ute', category_id: 'cat-coz', name: 'Utensílios diversos' }
-    ]
-  },
-  {
-    id: 'cat-esc',
-    name: 'Escritório',
-    code: 'ESC',
-    icon: 'Briefcase',
-    description: 'Arquivadores, calculadoras e máquinas de suporte',
-    subcategories: [
-      { id: 'sub-arq', category_id: 'cat-esc', name: 'Arquivador' },
-      { id: 'sub-cal', category_id: 'cat-esc', name: 'Calculadora' },
-      { id: 'sub-qua', category_id: 'cat-esc', name: 'Quadro' },
-      { id: 'sub-mat', category_id: 'cat-esc', name: 'Material de escritório' },
-      { id: 'sub-des-p', category_id: 'cat-esc', name: 'Destruidor de papel' }
+      { id: 'sub-ele', category_id: 'cat-coz', name: 'Eletrodoméstico' },
+      { id: 'sub-pra', category_id: 'cat-coz', name: 'Pratos / Copos / Louça' },
+      { id: 'sub-tal', category_id: 'cat-coz', name: 'Talheres / Utensílios' }
     ]
   },
   {
     id: 'cat-fer',
-    name: 'Ferramentas',
+    name: 'Ferramentas & Equipamentos',
     code: 'FER',
     icon: 'Wrench',
-    description: 'Ferramentas de trabalho, construção e geradores',
+    description: 'Berbequins, geradores, escadas, ferramentas manuais',
     subcategories: [
-      { id: 'sub-ber', category_id: 'cat-fer', name: 'Berbequim' },
-      { id: 'sub-reb', category_id: 'cat-fer', name: 'Rebarbadora' },
-      { id: 'sub-mar', category_id: 'cat-fer', name: 'Martelo' },
-      { id: 'sub-cha', category_id: 'cat-fer', name: 'Chaves' },
-      { id: 'sub-esc-f', category_id: 'cat-fer', name: 'Escadas' },
-      { id: 'sub-ger', category_id: 'cat-fer', name: 'Geradores' },
-      { id: 'sub-fer-d', category_id: 'cat-fer', name: 'Ferramentas diversas' }
-    ]
-  },
-  {
-    id: 'cat-tra',
-    name: 'Transporte',
-    code: 'TRA',
-    icon: 'Car',
-    description: 'Viaturas institucionais, motociclos e reboques',
-    subcategories: [
-      { id: 'sub-via', category_id: 'cat-tra', name: 'Viaturas' },
-      { id: 'sub-mot', category_id: 'cat-tra', name: 'Motociclos' },
-      { id: 'sub-bic', category_id: 'cat-tra', name: 'Bicicletas' },
-      { id: 'sub-reb-t', category_id: 'cat-tra', name: 'Reboques' }
-    ]
-  },
-  {
-    id: 'cat-alo',
-    name: 'Alojamento',
-    code: 'ALO',
-    icon: 'Bed',
-    description: 'Roupa de cama, colchões, ar condicionado e ventoinhas',
-    subcategories: [
-      { id: 'sub-cam-a', category_id: 'cat-alo', name: 'Camas' },
-      { id: 'sub-col', category_id: 'cat-alo', name: 'Colchões' },
-      { id: 'sub-len', category_id: 'cat-alo', name: 'Lençóis' },
-      { id: 'sub-cob', category_id: 'cat-alo', name: 'Cobertores' },
-      { id: 'sub-alm', category_id: 'cat-alo', name: 'Almofadas' },
-      { id: 'sub-cor', category_id: 'cat-alo', name: 'Cortinas' },
-      { id: 'sub-ven', category_id: 'cat-alo', name: 'Ventoinhas' },
-      { id: 'sub-ac',  category_id: 'cat-alo', name: 'Ar condicionado' }
+      { id: 'sub-fer-m', category_id: 'cat-fer', name: 'Ferramenta' },
+      { id: 'sub-ger',   category_id: 'cat-fer', name: 'Gerador / Máquina' }
     ]
   },
   {
     id: 'cat-out',
-    name: 'Outros',
+    name: 'Outros Bens',
     code: 'OUT',
     icon: 'Package',
-    description: 'Outros equipamentos e ativos não enquadrados',
+    description: 'Outros objetos físicos',
     subcategories: [
       { id: 'sub-geral', category_id: 'cat-out', name: 'Geral' }
     ]
@@ -146,364 +72,21 @@ export const INITIAL_CATEGORIES: Category[] = [
 ];
 
 export const INITIAL_LOCATIONS: LocationItem[] = [
-  { id: 'loc-1', building: 'Edifício Principal', floor: 'Piso 1', room: 'Sala Financeira', full_name: 'Edifício Principal -> Piso 1 -> Sala Financeira' },
-  { id: 'loc-2', building: 'Edifício Principal', floor: 'Piso 1', room: 'Gabinete IT', full_name: 'Edifício Principal -> Piso 1 -> Gabinete IT' },
-  { id: 'loc-3', building: 'Bloco Operacional', floor: 'Piso 0', room: 'Armazém Central', full_name: 'Bloco Operacional -> Piso 0 -> Armazém Central' },
-  { id: 'loc-4', building: 'Casa 2', floor: 'Piso Térreo', room: 'Quarto 3', full_name: 'Casa 2 -> Piso Térreo -> Quarto 3' },
-  { id: 'loc-5', building: 'Refeitório Central', floor: 'Piso 0', room: 'Cozinha Principal', full_name: 'Refeitório Central -> Piso 0 -> Cozinha Principal' },
-  { id: 'loc-6', building: 'Garagem Central', floor: 'Exterior', room: 'Estacionamento 1', full_name: 'Garagem Central -> Exterior -> Estacionamento 1' }
+  { id: 'loc-1', building: 'Edifício Principal', floor: 'Térreo', room: 'Escritório', full_name: 'Edifício Principal -> Escritório' },
+  { id: 'loc-2', building: 'Cozinha Central', floor: 'Térreo', room: 'Cozinha', full_name: 'Cozinha Central -> Cozinha' },
+  { id: 'loc-3', building: 'Residência', floor: 'Piso 1', room: 'Quarto', full_name: 'Residência -> Quarto' }
 ];
 
 export const INITIAL_STATES: AssetState[] = [
   { id: 'st-1', code: 'NEW', name: 'Novo', color: 'emerald' },
-  { id: 'st-2', code: 'EXCELLENT', name: 'Excelente', color: 'green' },
-  { id: 'st-3', code: 'GOOD', name: 'Bom', color: 'blue' },
-  { id: 'st-4', code: 'REGULAR', name: 'Regular', color: 'yellow' },
-  { id: 'st-5', code: 'BAD', name: 'Mau', color: 'amber' },
-  { id: 'st-6', code: 'DAMAGED', name: 'Danificado', color: 'orange' },
-  { id: 'st-7', code: 'UNUSABLE', name: 'Inutilizável', color: 'red' },
-  { id: 'st-8', code: 'IN_REPAIR', name: 'Em reparação', color: 'purple' },
-  { id: 'st-9', code: 'LOST', name: 'Perdido', color: 'rose' },
-  { id: 'st-10', code: 'RETIRED', name: 'Abatido', color: 'slate' }
+  { id: 'st-2', code: 'GOOD', name: 'Bom', color: 'blue' },
+  { id: 'st-3', code: 'REGULAR', name: 'Regular', color: 'yellow' },
+  { id: 'st-4', code: 'DAMAGED', name: 'Estragado / Danificado', color: 'orange' }
 ];
 
-export const INITIAL_INVENTORIES: Inventory[] = [
-  {
-    id: 'inv-fin-2026',
-    department_id: 'dept-fin',
-    title: 'Inventário Geral — Finanças 2026',
-    status: 'in_progress',
-    start_date: '2026-09-14',
-    responsible_name: 'João Pereira',
-    general_notes: 'Levantamento físico dos equipamentos do departamento financeiro.',
-    created_at: '2026-09-14T08:00:00Z'
-  },
-  {
-    id: 'inv-ope-2026',
-    department_id: 'dept-ope',
-    title: 'Inventário Geral — Operações 2026',
-    status: 'completed',
-    start_date: '2026-09-10',
-    end_date: '2026-09-12',
-    responsible_name: 'Maria Fernandes',
-    general_notes: 'Contagem efetuada com sucesso nas casas operacionais e estaleiro.',
-    responsible_signature: 'Maria Fernandes - 12/09/2026',
-    created_at: '2026-09-10T09:00:00Z'
-  },
-  {
-    id: 'inv-it-2026',
-    department_id: 'dept-it',
-    title: 'Inventário Geral — IT 2026',
-    status: 'validated',
-    start_date: '2026-09-01',
-    end_date: '2026-09-05',
-    responsible_name: 'Pedro IT',
-    general_notes: 'Validado pelo Administrador do Sistema.',
-    responsible_signature: 'Pedro IT',
-    admin_validation_signature: 'Admin IT - Validado em 06/09/2026',
-    validated_by: 'Administrador IT',
-    validated_at: '2026-09-06T14:30:00Z',
-    created_at: '2026-09-01T10:00:00Z'
-  },
-  {
-    id: 'inv-coz-2026',
-    department_id: 'dept-coz',
-    title: 'Inventário Geral — Cozinha 2026',
-    status: 'in_progress',
-    start_date: '2026-09-15',
-    responsible_name: 'Lúcia Martins',
-    general_notes: 'Levantamento de louças e eletrodomésticos de grande porte.',
-    created_at: '2026-09-15T07:30:00Z'
-  }
-];
+// SEM MOCK DE BENS E INVENTÁRIOS POR DEFEITO (BASE DE DADOS LIMPA)
+export const INITIAL_INVENTORIES: Inventory[] = [];
 
-export const INITIAL_ASSETS: Asset[] = [
-  {
-    id: 'ast-001',
-    inventory_id: 'inv-fin-2026',
-    department_id: 'dept-fin',
-    asset_code: 'ORG-000001',
-    category_id: 'cat-tec',
-    category_name: 'Tecnologia',
-    subcategory_name: 'Laptop',
-    description: 'Laptop HP EliteBook 840 G8 14" i7 16GB RAM',
-    brand: 'HP',
-    model: 'EliteBook 840 G8',
-    serial_number: '5CG1234XYZ',
-    is_quantity_controlled: false,
-    quantity: 1,
-    unit: 'un',
-    responsible_name: 'João Pereira',
-    location_name: 'Edifício Principal -> Piso 1 -> Sala Financeira',
-    building: 'Edifício Principal',
-    room: 'Sala Financeira',
-    state_name: 'Excelente',
-    situation: 'Em uso',
-    acquisition_value: 850000,
-    currency: 'Kz',
-    acquisition_date: '2024-03-15',
-    supplier: 'TecnoAngola Lda',
-    invoice_number: 'FT-2024/9912',
-    estimated_current_value: 650000,
-    physical_check_status: 'found',
-    notes: 'Computador principal do responsável de Finanças.',
-    first_registered_at: '2026-09-14T08:30:00Z',
-    last_inventoried_at: '2026-09-14T08:30:00Z',
-    last_confirmed_by: 'João Pereira',
-    last_confirmed_state: 'Excelente',
-    photos: [
-      {
-        id: 'p-1',
-        asset_id: 'ast-001',
-        photo_url: 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=600&auto=format&fit=crop&q=80',
-        photo_type: 'asset',
-        caption: 'Fotografia frontal do Laptop HP'
-      }
-    ]
-  },
-  {
-    id: 'ast-002',
-    inventory_id: 'inv-fin-2026',
-    department_id: 'dept-fin',
-    asset_code: 'ORG-000002',
-    category_id: 'cat-mob',
-    category_name: 'Mobiliário',
-    subcategory_name: 'Secretária',
-    description: 'Secretária Executiva em Madeira de Carvalho 160x80cm',
-    brand: 'Mobiliaria VIP',
-    model: 'Exec 160',
-    is_quantity_controlled: false,
-    quantity: 1,
-    unit: 'un',
-    responsible_name: 'João Pereira',
-    location_name: 'Edifício Principal -> Piso 1 -> Sala Financeira',
-    building: 'Edifício Principal',
-    room: 'Sala Financeira',
-    state_name: 'Bom',
-    situation: 'Em uso',
-    acquisition_value: 240000,
-    currency: 'Kz',
-    estimated_current_value: 180000,
-    physical_check_status: 'found',
-    photos: []
-  },
-  {
-    id: 'ast-003',
-    inventory_id: 'inv-ope-2026',
-    department_id: 'dept-ope',
-    asset_code: 'ORG-000003',
-    category_id: 'cat-tec',
-    category_name: 'Tecnologia',
-    subcategory_name: 'Laptop',
-    description: 'Laptop Lenovo ThinkPad T14 Gen 2',
-    brand: 'Lenovo',
-    model: 'ThinkPad T14',
-    serial_number: 'PF-39A821',
-    is_quantity_controlled: false,
-    quantity: 1,
-    unit: 'un',
-    responsible_name: 'Maria Fernandes',
-    location_name: 'Casa 2 -> Piso Térreo -> Quarto 3',
-    building: 'Casa 2',
-    room: 'Quarto 3',
-    state_name: 'Bom',
-    situation: 'Em uso',
-    acquisition_value: 780000,
-    currency: 'Kz',
-    estimated_current_value: 590000,
-    physical_check_status: 'found',
-    photos: []
-  },
-  {
-    id: 'ast-004',
-    inventory_id: 'inv-coz-2026',
-    department_id: 'dept-coz',
-    asset_code: 'ORG-COZ-0001',
-    category_id: 'cat-coz',
-    category_name: 'Cozinha',
-    subcategory_name: 'Pratos',
-    description: 'Pratos fundos e rasos em cerâmica branca',
-    brand: 'Porcelanas Luanda',
-    model: 'Linha Hotelaria 26cm',
-    is_quantity_controlled: true,
-    quantity: 35,
-    unit: 'un',
-    responsible_name: 'Lúcia Martins',
-    location_name: 'Refeitório Central -> Piso 0 -> Cozinha Principal',
-    building: 'Refeitório Central',
-    room: 'Cozinha Principal',
-    state_name: 'Bom',
-    situation: 'Em uso',
-    acquisition_value: 105000,
-    currency: 'Kz',
-    estimated_current_value: 85000,
-    physical_check_status: 'found',
-    notes: 'Lote de 35 pratos conferido durante o inventário da cozinha.',
-    photos: []
-  },
-  {
-    id: 'ast-005',
-    inventory_id: 'inv-coz-2026',
-    department_id: 'dept-coz',
-    asset_code: 'ORG-COZ-0002',
-    category_id: 'cat-coz',
-    category_name: 'Cozinha',
-    subcategory_name: 'Copos',
-    description: 'Copos de vidro temperado 300ml',
-    brand: 'Cristal',
-    model: 'Copos Agua 300',
-    is_quantity_controlled: true,
-    quantity: 24,
-    unit: 'un',
-    responsible_name: 'Lúcia Martins',
-    location_name: 'Refeitório Central -> Piso 0 -> Cozinha Principal',
-    building: 'Refeitório Central',
-    room: 'Cozinha Principal',
-    state_name: 'Excelente',
-    situation: 'Em uso',
-    acquisition_value: 48000,
-    currency: 'Kz',
-    estimated_current_value: 40000,
-    physical_check_status: 'found',
-    photos: []
-  },
-  {
-    id: 'ast-006',
-    inventory_id: 'inv-coz-2026',
-    department_id: 'dept-coz',
-    asset_code: 'ORG-COZ-0003',
-    category_id: 'cat-coz',
-    category_name: 'Cozinha',
-    subcategory_name: 'Talheres',
-    description: 'Conjunto de garfos, facas e colheres de inox',
-    brand: 'Inox Luanda',
-    model: 'Conjunto Restauração',
-    is_quantity_controlled: true,
-    quantity: 40,
-    unit: 'un',
-    responsible_name: 'Lúcia Martins',
-    location_name: 'Refeitório Central -> Piso 0 -> Cozinha Principal',
-    building: 'Refeitório Central',
-    room: 'Cozinha Principal',
-    state_name: 'Bom',
-    situation: 'Em uso',
-    acquisition_value: 60000,
-    currency: 'Kz',
-    estimated_current_value: 50000,
-    physical_check_status: 'found',
-    photos: []
-  },
-  {
-    id: 'ast-007',
-    inventory_id: 'inv-it-2026',
-    department_id: 'dept-it',
-    asset_code: 'ORG-000007',
-    category_id: 'cat-tec',
-    category_name: 'Tecnologia',
-    subcategory_name: 'Switch',
-    description: 'Switch Cisco Catalyst 2960-X 24 Portas Gigabit',
-    brand: 'Cisco',
-    model: 'WS-C2960X-24PS-L',
-    serial_number: 'FOC2138W0AB',
-    is_quantity_controlled: false,
-    quantity: 1,
-    unit: 'un',
-    responsible_name: 'Pedro IT',
-    location_name: 'Edifício Principal -> Piso 1 -> Gabinete IT',
-    building: 'Edifício Principal',
-    room: 'Gabinete IT',
-    state_name: 'Excelente',
-    situation: 'Em uso',
-    acquisition_value: 1200000,
-    currency: 'Kz',
-    estimated_current_value: 950000,
-    physical_check_status: 'found',
-    photos: []
-  },
-  {
-    id: 'ast-008',
-    inventory_id: 'inv-ope-2026',
-    department_id: 'dept-ope',
-    asset_code: 'ORG-000008',
-    category_id: 'cat-fer',
-    category_name: 'Ferramentas',
-    subcategory_name: 'Geradores',
-    description: 'Gerador a Diesel Caterpillar 150 kVA Trifásico',
-    brand: 'Caterpillar',
-    model: 'DE150E0',
-    serial_number: 'CAT0150KVA9981',
-    is_quantity_controlled: false,
-    quantity: 1,
-    unit: 'un',
-    responsible_name: 'Maria Fernandes',
-    location_name: 'Bloco Operacional -> Piso 0 -> Armazém Central',
-    building: 'Bloco Operacional',
-    room: 'Armazém Central',
-    state_name: 'Regular',
-    situation: 'Em manutenção',
-    acquisition_value: 18500000,
-    currency: 'Kz',
-    estimated_current_value: 14000000,
-    physical_check_status: 'needs_verification',
-    notes: 'A aguardar substituição do filtro de combustível.',
-    photos: []
-  },
-  {
-    id: 'ast-009',
-    inventory_id: 'inv-ope-2026',
-    department_id: 'dept-ope',
-    asset_code: 'ORG-000009',
-    category_id: 'cat-tra',
-    category_name: 'Transporte',
-    subcategory_name: 'Viaturas',
-    description: 'Viatura Toyota Hilux 4x4 Cabine Dupla 2.8 Diesel',
-    brand: 'Toyota',
-    model: 'Hilux 2.8 D-4D',
-    serial_number: 'CHASSIS-AHTKB3CD8021',
-    existing_id: 'LD-88-99-HG',
-    is_quantity_controlled: false,
-    quantity: 1,
-    unit: 'un',
-    responsible_name: 'Maria Fernandes',
-    location_name: 'Garagem Central -> Exterior -> Estacionamento 1',
-    building: 'Garagem Central',
-    room: 'Estacionamento 1',
-    state_name: 'Excelente',
-    situation: 'Em uso',
-    acquisition_value: 28000000,
-    currency: 'Kz',
-    estimated_current_value: 23000000,
-    physical_check_status: 'found',
-    photos: []
-  }
-];
+export const INITIAL_ASSETS: Asset[] = [];
 
-export const INITIAL_AUDIT_LOGS: AuditLog[] = [
-  {
-    id: 'log-1',
-    user_email: 'admin@organizacao.org',
-    action: 'create',
-    entity_type: 'inventory',
-    entity_id: 'inv-fin-2026',
-    details: { title: 'Inventário Geral — Finanças 2026', department: 'Finanças' },
-    created_at: '2026-09-14T08:00:00Z'
-  },
-  {
-    id: 'log-2',
-    user_email: 'joao.pereira@organizacao.org',
-    action: 'create',
-    entity_type: 'asset',
-    entity_id: 'ast-001',
-    details: { asset_code: 'ORG-000001', description: 'Laptop HP EliteBook 840 G8' },
-    created_at: '2026-09-14T08:30:00Z'
-  },
-  {
-    id: 'log-3',
-    user_email: 'admin.it@organizacao.org',
-    action: 'validate',
-    entity_type: 'inventory',
-    entity_id: 'inv-it-2026',
-    details: { status: 'validated', validated_by: 'Administrador IT' },
-    created_at: '2026-09-06T14:30:00Z'
-  }
-];
+export const INITIAL_AUDIT_LOGS: AuditLog[] = [];
