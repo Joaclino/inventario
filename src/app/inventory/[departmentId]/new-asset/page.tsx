@@ -16,9 +16,8 @@ import {
   Plus,
   Minus,
   Trash2,
-  Package,
-  ArrowRight,
-  ListFilter
+  ListFilter,
+  Barcode
 } from 'lucide-react';
 
 export default function NewAssetSimplePage() {
@@ -30,6 +29,7 @@ export default function NewAssetSimplePage() {
 
   // Campos do Formulário
   const [description, setDescription] = useState('');
+  const [serialNumber, setSerialNumber] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [locationName, setLocationName] = useState('');
   const [stateName, setStateName] = useState('Bom');
@@ -84,6 +84,7 @@ export default function NewAssetSimplePage() {
       asset_code: code,
       category_name: 'Geral',
       description: description.trim(),
+      serial_number: serialNumber.trim(),
       is_quantity_controlled: quantity > 1,
       quantity: Number(quantity),
       unit: 'un',
@@ -103,6 +104,7 @@ export default function NewAssetSimplePage() {
 
   const handleRegisterAnother = () => {
     setDescription('');
+    setSerialNumber('');
     setQuantity(1);
     setPhotos([]);
     setLocationName('');
@@ -135,7 +137,7 @@ export default function NewAssetSimplePage() {
       <form onSubmit={handleFormSubmit} className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-6">
         <div className="text-center pb-3 border-b border-slate-100">
           <h1 className="text-xl font-black text-twftw-navy">Cadastrar Item no Inventário</h1>
-          <p className="text-xs text-slate-500 mt-0.5">Preencha o nome do objeto. A foto é opcional!</p>
+          <p className="text-xs text-slate-500 mt-0.5">Preencha os dados do objeto. Foto e número de série são opcionais!</p>
         </div>
 
         {/* 1. NOME DO OBJETO */}
@@ -145,7 +147,7 @@ export default function NewAssetSimplePage() {
           </label>
           <input
             type="text"
-            placeholder="Ex: Mesa de Madeira, Frigorífico, Cadeira, Pratos..."
+            placeholder="Ex: Laptop HP, Desktop Lenovo, Televisor, Frigorífico, Mesa..."
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             className="w-full bg-slate-50 border border-slate-300 rounded-2xl p-4 text-base text-slate-900 font-bold placeholder-slate-400 focus:outline-none focus:border-twftw-navy shadow-sm"
@@ -154,10 +156,30 @@ export default function NewAssetSimplePage() {
           />
         </div>
 
-        {/* 2. QUANTIDADE */}
+        {/* 2. NÚMERO DE SÉRIE (OPCIONAL - COMPUTADORES E ELETRÓNICOS) */}
+        <div>
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="text-xs font-extrabold uppercase tracking-wider text-twftw-navy flex items-center space-x-1">
+              <Barcode className="w-3.5 h-3.5 text-blue-600 inline mr-1" />
+              <span>2. Número de Série (S/N)</span>
+            </label>
+            <span className="text-[10px] font-bold text-slate-500 uppercase bg-slate-100 px-2 py-0.5 rounded-md">
+              Opcional (Computadores / Eletrónicos)
+            </span>
+          </div>
+          <input
+            type="text"
+            placeholder="Ex: 5CG1234XYZ, PF-39A821, S/N..."
+            value={serialNumber}
+            onChange={(e) => setSerialNumber(e.target.value)}
+            className="w-full bg-slate-50 border border-slate-300 rounded-2xl p-3.5 text-xs text-slate-900 font-mono font-bold placeholder-slate-400 focus:outline-none focus:border-twftw-navy"
+          />
+        </div>
+
+        {/* 3. QUANTIDADE */}
         <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
           <label className="block text-xs font-extrabold uppercase tracking-wider text-twftw-navy">
-            2. Quantidade
+            3. Quantidade
           </label>
           <div className="flex items-center space-x-3">
             <button
@@ -184,11 +206,11 @@ export default function NewAssetSimplePage() {
           </div>
         </div>
 
-        {/* 3. FOTOGRAFIA (OPCIONAL) */}
+        {/* 4. FOTOGRAFIA (OPCIONAL) */}
         <div className="space-y-3 pt-2 border-t border-slate-100">
           <div className="flex items-center justify-between">
             <label className="text-xs font-extrabold uppercase tracking-wider text-twftw-navy">
-              3. Tirar Fotografia
+              4. Tirar Fotografia
             </label>
             <span className="text-[10px] font-bold text-slate-500 uppercase bg-slate-100 px-2 py-0.5 rounded-md">
               Opcional
@@ -239,24 +261,24 @@ export default function NewAssetSimplePage() {
           )}
         </div>
 
-        {/* 4. LOCALIZAÇÃO (OPCIONAL) */}
+        {/* 5. LOCALIZAÇÃO (OPCIONAL) */}
         <div>
           <label className="block text-xs font-extrabold uppercase tracking-wider text-twftw-navy mb-1.5">
-            4. Onde está localizado? (Opcional)
+            5. Onde está localizado? (Opcional)
           </label>
           <input
             type="text"
-            placeholder="Ex: Cozinha, Sala, Quarto 2..."
+            placeholder="Ex: Cozinha, Sala, Quarto 2, Gabinete IT..."
             value={locationName}
             onChange={(e) => setLocationName(e.target.value)}
             className="w-full bg-slate-50 border border-slate-300 rounded-2xl p-3.5 text-xs text-slate-900 font-medium placeholder-slate-400 focus:outline-none focus:border-twftw-navy"
           />
         </div>
 
-        {/* 5. ESTADO DE CONSERVAÇÃO */}
+        {/* 6. ESTADO DE CONSERVAÇÃO */}
         <div>
           <label className="block text-xs font-extrabold uppercase tracking-wider text-twftw-navy mb-2">
-            5. Estado do objeto
+            6. Estado do objeto
           </label>
           <div className="grid grid-cols-2 gap-2">
             {[
@@ -306,7 +328,10 @@ export default function NewAssetSimplePage() {
               <h2 className="text-xl font-black text-slate-900">Item Cadastrado com Sucesso!</h2>
               <div className="mt-2 p-3 bg-slate-50 rounded-2xl border border-slate-200 inline-block text-left w-full">
                 <p className="text-sm font-extrabold text-twftw-navy">{lastSavedDescription}</p>
-                <p className="text-xs text-slate-500 font-semibold">Quantidade: {lastSavedQty} unidade(s)</p>
+                {serialNumber && (
+                  <p className="text-xs font-mono font-bold text-blue-700 mt-0.5">S/N: {serialNumber}</p>
+                )}
+                <p className="text-xs text-slate-500 font-semibold mt-0.5">Quantidade: {lastSavedQty} unidade(s)</p>
               </div>
             </div>
 
