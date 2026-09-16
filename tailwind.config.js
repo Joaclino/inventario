@@ -8,15 +8,13 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        brand: {
-          50: '#f0f7ff',
-          100: '#e0effe',
-          500: '#0284c7',
-          600: '#0265d6',
-          700: '#034ea2',
-          800: '#073c79',
-          900: '#0c3260',
-          950: '#082042',
+        twftw: {
+          navy: '#0f2b48',
+          blue: '#1e40af',
+          gold: '#d97706',
+          teal: '#0d9488',
+          light: '#f8fafc',
+          card: '#ffffff',
         }
       }
     },

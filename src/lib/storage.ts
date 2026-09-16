@@ -13,21 +13,20 @@ import {
   INITIAL_DEPARTMENTS,
   INITIAL_CATEGORIES,
   INITIAL_LOCATIONS,
-  INITIAL_STATES,
-  INITIAL_INVENTORIES,
-  INITIAL_ASSETS,
-  INITIAL_AUDIT_LOGS
+  INITIAL_STATES
 } from './mockData';
 
 const KEYS = {
-  DEPARTMENTS: 'inventario_departments_v2',
-  CATEGORIES: 'inventario_categories_v2',
-  LOCATIONS: 'inventario_locations_v2',
-  STATES: 'inventario_states_v2',
-  INVENTORIES: 'inventario_inventories_v2',
-  ASSETS: 'inventario_assets_v2',
-  AUDIT_LOGS: 'inventario_audit_logs_v2',
-  USER_PROFILE: 'inventario_current_user_v2'
+  DEPARTMENTS: 'inventario_departments_v3',
+  CATEGORIES: 'inventario_categories_v3',
+  LOCATIONS: 'inventario_locations_v3',
+  STATES: 'inventario_states_v3',
+  INVENTORIES: 'inventario_inventories_v3',
+  ASSETS: 'inventario_assets_v3',
+  AUDIT_LOGS: 'inventario_audit_logs_v3',
+  USER_PROFILE: 'inventario_current_user_v3',
+  ADMIN_AUTH: 'inventario_admin_authenticated_v3',
+  FIELD_RESPONSIBLE_NAME: 'inventario_field_responsible_v3'
 };
 
 function isBrowser(): boolean {
@@ -60,9 +59,9 @@ export function initializeStorage(): void {
   if (!localStorage.getItem(KEYS.CATEGORIES)) setItem(KEYS.CATEGORIES, INITIAL_CATEGORIES);
   if (!localStorage.getItem(KEYS.LOCATIONS)) setItem(KEYS.LOCATIONS, INITIAL_LOCATIONS);
   if (!localStorage.getItem(KEYS.STATES)) setItem(KEYS.STATES, INITIAL_STATES);
-  if (!localStorage.getItem(KEYS.INVENTORIES)) setItem(KEYS.INVENTORIES, INITIAL_INVENTORIES);
-  if (!localStorage.getItem(KEYS.ASSETS)) setItem(KEYS.ASSETS, INITIAL_ASSETS);
-  if (!localStorage.getItem(KEYS.AUDIT_LOGS)) setItem(KEYS.AUDIT_LOGS, INITIAL_AUDIT_LOGS);
+  if (!localStorage.getItem(KEYS.INVENTORIES)) setItem(KEYS.INVENTORIES, []);
+  if (!localStorage.getItem(KEYS.ASSETS)) setItem(KEYS.ASSETS, []);
+  if (!localStorage.getItem(KEYS.AUDIT_LOGS)) setItem(KEYS.AUDIT_LOGS, []);
 }
 
 export function clearAllStorageData(): void {
@@ -76,32 +75,73 @@ export function clearAllStorageData(): void {
 }
 
 // -------------------------------------------------------------
-// SESSÃO E VERIFICAÇÃO DE ADMIN (JOACLINOP)
+// CADASTRO BÁSICO DO UTILIZADOR NO TERRENO (NOME DO RESPONSÁVEL)
 // -------------------------------------------------------------
+export function getFieldResponsibleName(): string {
+  if (!isBrowser()) return '';
+  return getItem<string>(KEYS.FIELD_RESPONSIBLE_NAME, '');
+}
+
+export function setFieldResponsibleName(name: string): void {
+  if (!isBrowser()) return;
+  setItem(KEYS.FIELD_RESPONSIBLE_NAME, name.trim());
+}
+
+// -------------------------------------------------------------
+// AUTENTICAÇÃO E SENHA DE ADMIN (JOACLINOP)
+// -------------------------------------------------------------
+export function isAdminAuthenticated(): boolean {
+  if (!isBrowser()) return false;
+  return getItem<boolean>(KEYS.ADMIN_AUTH, false);
+}
+
+export function authenticateAdmin(password: string): boolean {
+  if (!isBrowser()) return false;
+  // Senha do Admin Joaclinop (ex: joaclinop123 ou admin123 ou 1234)
+  const validPasswords = ['joaclinop123', 'admin123', 'admin', 'twftw123', '1234'];
+  const isValid = validPasswords.includes(password.trim().toLowerCase());
+  if (isValid) {
+    setItem(KEYS.ADMIN_AUTH, true);
+    setCurrentUser({
+      id: 'usr-joaclinop',
+      full_name: 'Joaclinop (Admin)',
+      email: 'joaclinop@twftw.org',
+      role: 'ADMIN'
+    });
+  }
+  return isValid;
+}
+
+export function logoutAdmin(): void {
+  if (!isBrowser()) return;
+  setItem(KEYS.ADMIN_AUTH, false);
+  const responsible = getFieldResponsibleName();
+  setCurrentUser({
+    id: `usr-field-${Date.now()}`,
+    full_name: responsible || 'Utilizador do Terreno',
+    email: 'terreno@twftw.org',
+    role: 'DEPARTMENT_USER'
+  });
+}
+
 export function getCurrentUser(): UserProfile | null {
   if (!isBrowser()) return null;
   const user = getItem<UserProfile | null>(KEYS.USER_PROFILE, null);
   if (user) return user;
 
-  // Utilizador Padrão
+  const responsible = getFieldResponsibleName();
   const defaultUser: UserProfile = {
-    id: 'usr-joaclinop',
-    full_name: 'Joaclinop',
-    email: 'joaclinop@organizacao.org',
-    role: 'ADMIN'
+    id: `usr-field-${Date.now()}`,
+    full_name: responsible || 'Utilizador do Terreno',
+    email: 'terreno@twftw.org',
+    role: 'DEPARTMENT_USER'
   };
   setItem(KEYS.USER_PROFILE, defaultUser);
   return defaultUser;
 }
 
 export function isUserAdmin(user?: UserProfile | null): boolean {
-  const current = user || getCurrentUser();
-  if (!current) return false;
-
-  // Apenas Joaclinop tem acesso Master Admin
-  const name = current.full_name.toLowerCase();
-  const email = current.email.toLowerCase();
-  return name.includes('joaclinop') || email.includes('joaclinop') || current.role === 'ADMIN';
+  return isAdminAuthenticated();
 }
 
 export function setCurrentUser(user: UserProfile | null): void {
@@ -271,9 +311,11 @@ export function getInventories(): Inventory[] {
   return getItem(KEYS.INVENTORIES, []);
 }
 
-export function getInventoryByDepartment(departmentId: string): Inventory | undefined {
-  const inventories = getInventories();
-  return inventories.find(i => i.department_id === departmentId);
+export function getInventoriesByResponsible(responsibleName?: string): Inventory[] {
+  const all = getInventories();
+  if (!responsibleName || !responsibleName.trim()) return all;
+  const q = responsibleName.trim().toLowerCase();
+  return all.filter(i => i.responsible_name.toLowerCase().includes(q));
 }
 
 export function saveInventory(inv: Partial<Inventory> & { responsible_name: string; title: string }): Inventory {
@@ -286,14 +328,14 @@ export function saveInventory(inv: Partial<Inventory> & { responsible_name: stri
     updatedInv = { ...inventories[existingIndex], ...inv, updated_at: now };
     inventories[existingIndex] = updatedInv;
   } else {
-    const deptId = inv.department_id || 'dept-geral';
+    const deptId = inv.department_id || `dept-${Date.now()}`;
     updatedInv = {
       id: inv.id || `inv-${Date.now()}`,
       department_id: deptId,
       title: inv.title,
       status: inv.status || 'in_progress',
       start_date: inv.start_date || new Date().toISOString().split('T')[0],
-      responsible_name: inv.responsible_name,
+      responsible_name: inv.responsible_name.trim(),
       general_notes: inv.general_notes || '',
       created_at: now,
       updated_at: now
@@ -309,7 +351,7 @@ export function saveInventory(inv: Partial<Inventory> & { responsible_name: stri
 // -------------------------------------------------------------
 export function generateNextAssetCode(categoryCode?: string, isQuantity?: boolean): string {
   const assets = getAssets();
-  const prefix = isQuantity && categoryCode ? `ORG-${categoryCode.toUpperCase()}-` : 'ORG-';
+  const prefix = isQuantity && categoryCode ? `TWFTW-${categoryCode.toUpperCase()}-` : 'TWFTW-';
 
   const matchingCodes = assets
     .map(a => a.asset_code)
