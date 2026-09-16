@@ -5,23 +5,17 @@ import { useParams, useRouter } from 'next/navigation';
 import {
   getInventories,
   saveAsset,
-  generateNextAssetCode,
-  getCategories,
-  getAssetStates
+  generateNextAssetCode
 } from '@/lib/storage';
-import { Inventory, AssetState, Category, AssetPhoto } from '@/types/inventory';
+import { Inventory, AssetPhoto } from '@/types/inventory';
 import {
   ChevronLeft,
   Camera,
   Image as ImageIcon,
   Check,
-  Package,
-  MapPin,
-  User,
-  Trash2,
-  Sparkles,
   Plus,
-  Minus
+  Minus,
+  Trash2
 } from 'lucide-react';
 
 export default function NewAssetSimplePage() {
@@ -34,26 +28,18 @@ export default function NewAssetSimplePage() {
   // Campos do Formulário Ultra Simples
   const [description, setDescription] = useState('');
   const [quantity, setQuantity] = useState(1);
-  const [unit, setUnit] = useState('un');
   const [locationName, setLocationName] = useState('');
-  const [responsibleName, setResponsibleName] = useState('');
   const [stateName, setStateName] = useState('Bom');
   const [photos, setPhotos] = useState<AssetPhoto[]>([]);
-  const [categoryName, setCategoryName] = useState('Geral');
-  const [brandModel, setBrandModel] = useState('');
-
   const [savedMessage, setSavedMessage] = useState(false);
 
   useEffect(() => {
     const invs = getInventories();
     const inv = invs.find(i => i.department_id === departmentId || i.id === departmentId);
-    if (inv) {
-      setInventory(inv);
-      setResponsibleName(inv.responsible_name);
-    }
+    if (inv) setInventory(inv);
   }, [departmentId]);
 
-  // Captura de foto via câmara do telemóvel ou galeria
+  // Captura de foto OPCIONAL
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -81,7 +67,7 @@ export default function NewAssetSimplePage() {
   };
 
   const handleSave = (addAnother: boolean) => {
-    if (!description) return;
+    if (!description.trim()) return;
 
     const code = generateNextAssetCode('GERAL', quantity > 1);
 
@@ -89,16 +75,15 @@ export default function NewAssetSimplePage() {
       department_id: departmentId,
       inventory_id: inventory?.id,
       asset_code: code,
-      category_name: categoryName,
-      description,
-      brand: brandModel,
+      category_name: 'Geral',
+      description: description.trim(),
       is_quantity_controlled: quantity > 1,
       quantity: Number(quantity),
-      unit,
-      location_name: locationName || 'Geral',
-      building: locationName || 'Geral',
-      room: locationName || 'Geral',
-      responsible_name: responsibleName || inventory?.responsible_name || 'Joaclinop',
+      unit: 'un',
+      location_name: locationName.trim() || 'Geral',
+      building: locationName.trim() || 'Geral',
+      room: locationName.trim() || 'Geral',
+      responsible_name: inventory?.responsible_name || 'Joaclinop',
       state_name: stateName,
       situation: stateName === 'Estragado / Danificado' ? 'Danificado' : 'Em uso',
       photos
@@ -108,7 +93,7 @@ export default function NewAssetSimplePage() {
       setDescription('');
       setQuantity(1);
       setPhotos([]);
-      setBrandModel('');
+      setLocationName('');
       setSavedMessage(true);
       setTimeout(() => setSavedMessage(false), 2000);
     } else {
@@ -123,85 +108,34 @@ export default function NewAssetSimplePage() {
         <button
           type="button"
           onClick={() => router.push(`/inventory/${departmentId}`)}
-          className="py-2 px-3 bg-slate-900 border border-slate-800 text-slate-300 hover:text-white rounded-xl text-xs font-bold flex items-center"
+          className="py-2 px-3.5 bg-slate-900 border border-slate-800 text-slate-300 hover:text-white rounded-xl text-xs font-bold flex items-center"
         >
-          <ChevronLeft className="w-4 h-4 mr-1" /> Voltar
+          <ChevronLeft className="w-4 h-4 mr-1" /> Voltar à Lista
         </button>
 
         <span className="text-xs font-extrabold text-emerald-400 bg-emerald-950/60 px-3 py-1 rounded-full border border-emerald-500/30">
-          Registo Rápido
+          Registo Directo
         </span>
       </div>
 
-      {/* FORMULÁRIO ULTRA FLUIDO */}
+      {/* FORMULÁRIO ULTRA SIMPLES SEM COMPLICAÇÃO */}
       <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-6">
-        <div className="text-center pb-4 border-b border-slate-800">
-          <h1 className="text-xl font-extrabold text-white">Cadastrar Novo Item</h1>
-          <p className="text-xs text-slate-400 mt-0.5">Preencha os dados simples do objeto que está a ver</p>
+        <div className="text-center pb-3 border-b border-slate-800">
+          <h1 className="text-xl font-extrabold text-white">Cadastrar Item</h1>
+          <p className="text-xs text-slate-400 mt-0.5">Apenas diga o que é e guarde. A foto é opcional!</p>
         </div>
 
         {savedMessage && (
           <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold text-xs rounded-2xl text-center flex items-center justify-center space-x-2 animate-bounce">
             <Check className="w-4 h-4" />
-            <span>Item guardado com sucesso! Pode cadastrar o próximo.</span>
+            <span>Item guardado com sucesso! Pode escrever o próximo.</span>
           </div>
         )}
 
-        {/* 1. FOTOGRAFIA DO BEM */}
-        <div className="space-y-3">
-          <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-300">
-            1. Tirar Fotografia (Recomendado)
-          </label>
-
-          <div className="grid grid-cols-2 gap-3">
-            <label className="py-4 px-3 bg-blue-600 hover:bg-blue-500 text-white font-extrabold rounded-2xl text-xs cursor-pointer flex flex-col items-center justify-center text-center shadow-lg shadow-blue-600/20 transition-all active:scale-95">
-              <Camera className="w-7 h-7 mb-1" />
-              <span>📷 TIRAR FOTO</span>
-              <input
-                type="file"
-                accept="image/*"
-                capture="environment"
-                className="hidden"
-                onChange={handlePhotoUpload}
-              />
-            </label>
-
-            <label className="py-4 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-extrabold rounded-2xl text-xs cursor-pointer flex flex-col items-center justify-center text-center transition-all">
-              <ImageIcon className="w-7 h-7 mb-1 text-cyan-400" />
-              <span>🖼️ GALERIA</span>
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                className="hidden"
-                onChange={handlePhotoUpload}
-              />
-            </label>
-          </div>
-
-          {/* Pré-visualização das Fotos */}
-          {photos.length > 0 && (
-            <div className="grid grid-cols-3 gap-2 pt-2">
-              {photos.map(p => (
-                <div key={p.id} className="relative rounded-2xl overflow-hidden border border-slate-700 h-24 bg-slate-950">
-                  <img src={p.photo_url} alt="Foto" className="w-full h-full object-cover" />
-                  <button
-                    type="button"
-                    onClick={() => handleRemovePhoto(p.id)}
-                    className="absolute top-1 right-1 p-1 bg-red-600 text-white rounded-full text-xs shadow"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* 2. O QUE É ESTE OBJETO? */}
+        {/* 1. NOME DO OBJETO (PRINCIPAL E OBRIGATÓRIO) */}
         <div>
-          <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-300 mb-2">
-            2. O que é este objeto? *
+          <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-300 mb-1.5">
+            1. O que é este objeto? *
           </label>
           <input
             type="text"
@@ -210,19 +144,20 @@ export default function NewAssetSimplePage() {
             onChange={(e) => setDescription(e.target.value)}
             className="w-full bg-slate-950 border border-slate-800 rounded-2xl p-4 text-base text-white font-bold placeholder-slate-600 focus:outline-none focus:border-emerald-500"
             required
+            autoFocus
           />
         </div>
 
-        {/* 3. QUANTIDADE */}
+        {/* 2. QUANTIDADE */}
         <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-2">
           <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-300">
-            3. Quantidade deste item
+            2. Quantidade
           </label>
           <div className="flex items-center space-x-3">
             <button
               type="button"
               onClick={() => setQuantity(q => Math.max(1, q - 1))}
-              className="w-12 h-12 rounded-xl bg-slate-800 text-white font-bold text-lg flex items-center justify-center"
+              className="w-12 h-12 rounded-xl bg-slate-800 text-white font-bold text-xl flex items-center justify-center hover:bg-slate-700"
             >
               <Minus className="w-5 h-5" />
             </button>
@@ -236,31 +171,86 @@ export default function NewAssetSimplePage() {
             <button
               type="button"
               onClick={() => setQuantity(q => q + 1)}
-              className="w-12 h-12 rounded-xl bg-slate-800 text-white font-bold text-lg flex items-center justify-center"
+              className="w-12 h-12 rounded-xl bg-slate-800 text-white font-bold text-xl flex items-center justify-center hover:bg-slate-700"
             >
               <Plus className="w-5 h-5" />
             </button>
           </div>
         </div>
 
-        {/* 4. ONDE ESTÁ LOCALIZADO? */}
+        {/* 3. FOTOGRAFIA (TOTALMENTE OPCIONAL) */}
+        <div className="space-y-3 pt-2 border-t border-slate-800">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-extrabold uppercase tracking-wider text-slate-300">
+              3. Tirar Fotografia
+            </label>
+            <span className="text-[10px] font-bold text-slate-500 uppercase bg-slate-800 px-2 py-0.5 rounded-md">
+              Opcional
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <label className="py-3.5 px-3 bg-blue-600/80 hover:bg-blue-600 text-white font-bold rounded-2xl text-xs cursor-pointer flex flex-col items-center justify-center text-center shadow transition-all active:scale-95">
+              <Camera className="w-6 h-6 mb-1" />
+              <span>📷 TIRAR FOTO</span>
+              <input
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={handlePhotoUpload}
+              />
+            </label>
+
+            <label className="py-3.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold rounded-2xl text-xs cursor-pointer flex flex-col items-center justify-center text-center transition-all">
+              <ImageIcon className="w-6 h-6 mb-1 text-cyan-400" />
+              <span>🖼️ GALERIA</span>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={handlePhotoUpload}
+              />
+            </label>
+          </div>
+
+          {photos.length > 0 && (
+            <div className="grid grid-cols-3 gap-2 pt-2">
+              {photos.map(p => (
+                <div key={p.id} className="relative rounded-2xl overflow-hidden border border-slate-700 h-20 bg-slate-950">
+                  <img src={p.photo_url} alt="Foto" className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => handleRemovePhoto(p.id)}
+                    className="absolute top-1 right-1 p-1 bg-red-600 text-white rounded-full text-xs shadow"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* 4. ONDE ESTÁ LOCALIZADO? (OPCIONAL) */}
         <div>
           <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-300 mb-1.5">
-            4. Onde está localizado? (Edifício / Divisão)
+            4. Onde está localizado? (Opcional)
           </label>
           <input
             type="text"
-            placeholder="Ex: Cozinha, Sala Principal, Quarto 2..."
+            placeholder="Ex: Cozinha, Sala, Quarto 2..."
             value={locationName}
             onChange={(e) => setLocationName(e.target.value)}
-            className="w-full bg-slate-950 border border-slate-800 rounded-2xl p-3.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500"
+            className="w-full bg-slate-950 border border-slate-800 rounded-2xl p-3.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500"
           />
         </div>
 
         {/* 5. ESTADO DE CONSERVAÇÃO */}
         <div>
           <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-300 mb-2">
-            5. Qual é o estado do objeto?
+            5. Estado do objeto
           </label>
           <div className="grid grid-cols-2 gap-2">
             {[
@@ -273,10 +263,10 @@ export default function NewAssetSimplePage() {
                 key={item.label}
                 type="button"
                 onClick={() => setStateName(item.label)}
-                className={`py-3 px-3 rounded-2xl border text-xs font-extrabold transition-all text-center ${
+                className={`py-2.5 px-3 rounded-2xl border text-xs font-bold transition-all text-center ${
                   stateName === item.label
-                    ? `${item.color} text-white border-white shadow-lg ring-2 ring-white/50`
-                    : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700'
+                    ? `${item.color} text-white border-white ring-2 ring-white/50`
+                    : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
                 }`}
               >
                 {item.label}
@@ -285,25 +275,25 @@ export default function NewAssetSimplePage() {
           </div>
         </div>
 
-        {/* BOTÕES DE AÇÃO GUARDAR */}
+        {/* BOTÕES GUARDAR */}
         <div className="space-y-2 pt-4 border-t border-slate-800">
           <button
             type="button"
-            disabled={!description}
+            disabled={!description.trim()}
             onClick={() => handleSave(true)}
-            className="w-full py-4 px-6 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 disabled:opacity-50 text-white font-black rounded-2xl text-sm transition-all shadow-xl shadow-emerald-600/30 flex items-center justify-center space-x-2"
+            className="w-full py-4 px-6 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 disabled:opacity-40 text-white font-black rounded-2xl text-sm transition-all shadow-xl shadow-emerald-600/30 flex items-center justify-center space-x-2"
           >
             <Check className="w-5 h-5" />
-            <span>[ 🟢 GUARDAR E REGISTAR OUTRO ITEM ]</span>
+            <span>[ 🟢 GUARDAR E REGISTAR OUTRO ]</span>
           </button>
 
           <button
             type="button"
-            disabled={!description}
+            disabled={!description.trim()}
             onClick={() => handleSave(false)}
-            className="w-full py-3 px-6 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-200 font-bold rounded-2xl text-xs transition-all text-center"
+            className="w-full py-3 px-6 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-slate-200 font-bold rounded-2xl text-xs transition-all text-center"
           >
-            <span>Guardar e Ver Lista Completa</span>
+            <span>Guardar e Voltar à Lista</span>
           </button>
         </div>
       </div>
