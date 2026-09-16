@@ -1,0 +1,91 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-900 text-slate-100 antialiased min-h-screen selection:bg-blue-500 selection:text-white;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
+
+/* Suporte para Impressão e PDF (@media print) */
+@media print {
+  /* Esconder barras de navegação, botões e elementos não imprimíveis */
+  .no-print,
+  nav,
+  header,
+  footer,
+  button,
+  .print-hide {
+    display: none !important;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 11pt;
+    padding: 0;
+    margin: 0;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  .print-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 15px !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin-top: 15px !important;
+    page-break-inside: auto;
+  }
+
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+
+  th, td {
+    border: 1px solid #cbd5e1 !important;
+    padding: 6px 8px !important;
+    font-size: 9pt !important;
+    text-align: left;
+    color: #000000 !important;
+  }
+
+  th {
+    background-color: #f1f5f9 !important;
+    font-weight: bold;
+  }
+
+  .signature-box {
+    margin-top: 40px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    page-break-inside: avoid;
+  }
+
+  .signature-line {
+    border-top: 1px solid #000000 !important;
+    width: 45% !important;
+    text-align: center !important;
+    padding-top: 5px !important;
+    font-size: 10pt !important;
+  }
+}
+
+/* Ocultar elementos exclusivos de impressão por defeito no ecrã */
+.print-only {
+  display: none;
+}
