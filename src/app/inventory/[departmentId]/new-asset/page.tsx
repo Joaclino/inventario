@@ -12,10 +12,13 @@ import {
   ChevronLeft,
   Camera,
   Image as ImageIcon,
-  Check,
+  CheckCircle2,
   Plus,
   Minus,
-  Trash2
+  Trash2,
+  Package,
+  ArrowRight,
+  ListFilter
 } from 'lucide-react';
 
 export default function NewAssetSimplePage() {
@@ -31,7 +34,11 @@ export default function NewAssetSimplePage() {
   const [locationName, setLocationName] = useState('');
   const [stateName, setStateName] = useState('Bom');
   const [photos, setPhotos] = useState<AssetPhoto[]>([]);
-  const [savedMessage, setSavedMessage] = useState(false);
+
+  // Estado do Modal de Sucesso após Guardar
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [lastSavedDescription, setLastSavedDescription] = useState('');
+  const [lastSavedQty, setLastSavedQty] = useState(1);
 
   useEffect(() => {
     const invs = getInventories();
@@ -65,7 +72,8 @@ export default function NewAssetSimplePage() {
     setPhotos(prev => prev.filter(p => p.id !== id));
   };
 
-  const handleSave = (addAnother: boolean) => {
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
     if (!description.trim()) return;
 
     const code = generateNextAssetCode('GERAL', quantity > 1);
@@ -88,20 +96,27 @@ export default function NewAssetSimplePage() {
       photos
     });
 
-    if (addAnother) {
-      setDescription('');
-      setQuantity(1);
-      setPhotos([]);
-      setLocationName('');
-      setSavedMessage(true);
-      setTimeout(() => setSavedMessage(false), 2000);
-    } else {
-      router.push(`/inventory/${departmentId}`);
-    }
+    setLastSavedDescription(description.trim());
+    setLastSavedQty(quantity);
+    setShowSuccessModal(true);
+  };
+
+  const handleRegisterAnother = () => {
+    setDescription('');
+    setQuantity(1);
+    setPhotos([]);
+    setLocationName('');
+    setShowSuccessModal(false);
+  };
+
+  const handleGoToInventory = () => {
+    setShowSuccessModal(false);
+    router.push(`/inventory/${departmentId}`);
   };
 
   return (
     <div className="max-w-xl mx-auto py-4 px-2 sm:px-4 animate-fade-in pb-16">
+      {/* Botão de Voltar */}
       <div className="flex items-center justify-between mb-4">
         <button
           type="button"
@@ -112,22 +127,16 @@ export default function NewAssetSimplePage() {
         </button>
 
         <span className="text-xs font-extrabold text-twftw-navy bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
-          Registo Directo
+          Novo Item
         </span>
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-6">
+      {/* FORMULÁRIO */}
+      <form onSubmit={handleFormSubmit} className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-6">
         <div className="text-center pb-3 border-b border-slate-100">
-          <h1 className="text-xl font-black text-twftw-navy">Cadastrar Item</h1>
-          <p className="text-xs text-slate-500 mt-0.5">Preencha os dados simples. A foto é opcional!</p>
+          <h1 className="text-xl font-black text-twftw-navy">Cadastrar Item no Inventário</h1>
+          <p className="text-xs text-slate-500 mt-0.5">Preencha o nome do objeto. A foto é opcional!</p>
         </div>
-
-        {savedMessage && (
-          <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold text-xs rounded-2xl text-center flex items-center justify-center space-x-2 animate-bounce">
-            <Check className="w-4 h-4 text-emerald-600" />
-            <span>Item guardado com sucesso! Pode escrever o próximo.</span>
-          </div>
-        )}
 
         {/* 1. NOME DO OBJETO */}
         <div>
@@ -139,7 +148,7 @@ export default function NewAssetSimplePage() {
             placeholder="Ex: Mesa de Madeira, Frigorífico, Cadeira, Pratos..."
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-300 rounded-2xl p-4 text-base text-slate-900 font-bold placeholder-slate-400 focus:outline-none focus:border-twftw-navy"
+            className="w-full bg-slate-50 border border-slate-300 rounded-2xl p-4 text-base text-slate-900 font-bold placeholder-slate-400 focus:outline-none focus:border-twftw-navy shadow-sm"
             required
             autoFocus
           />
@@ -154,7 +163,7 @@ export default function NewAssetSimplePage() {
             <button
               type="button"
               onClick={() => setQuantity(q => Math.max(1, q - 1))}
-              className="w-12 h-12 rounded-xl bg-white border border-slate-300 text-slate-800 font-bold text-xl flex items-center justify-center shadow-sm"
+              className="w-12 h-12 rounded-xl bg-white border border-slate-300 text-slate-800 font-bold text-xl flex items-center justify-center shadow-sm hover:bg-slate-100"
             >
               <Minus className="w-5 h-5" />
             </button>
@@ -163,12 +172,12 @@ export default function NewAssetSimplePage() {
               min={1}
               value={quantity}
               onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))}
-              className="flex-1 bg-white border border-slate-300 rounded-xl py-3 text-center text-xl font-black text-twftw-navy focus:outline-none"
+              className="flex-1 bg-white border border-slate-300 rounded-xl py-3 text-center text-xl font-black text-twftw-navy focus:outline-none shadow-sm"
             />
             <button
               type="button"
               onClick={() => setQuantity(q => q + 1)}
-              className="w-12 h-12 rounded-xl bg-white border border-slate-300 text-slate-800 font-bold text-xl flex items-center justify-center shadow-sm"
+              className="w-12 h-12 rounded-xl bg-white border border-slate-300 text-slate-800 font-bold text-xl flex items-center justify-center shadow-sm hover:bg-slate-100"
             >
               <Plus className="w-5 h-5" />
             </button>
@@ -272,28 +281,59 @@ export default function NewAssetSimplePage() {
           </div>
         </div>
 
-        {/* BOTÕES GUARDAR */}
-        <div className="space-y-2 pt-4 border-t border-slate-100">
+        {/* BOTÃO GUARDAR */}
+        <div className="pt-4 border-t border-slate-100">
           <button
-            type="button"
+            type="submit"
             disabled={!description.trim()}
-            onClick={() => handleSave(true)}
-            className="w-full py-4 px-6 bg-twftw-navy hover:bg-slate-800 disabled:opacity-40 text-white font-black rounded-2xl text-sm transition-all shadow-md flex items-center justify-center space-x-2"
+            className="w-full py-4 px-6 bg-twftw-navy hover:bg-slate-800 disabled:opacity-40 text-white font-black rounded-2xl text-sm transition-all shadow-md flex items-center justify-center space-x-2 transform active:scale-95"
           >
-            <Check className="w-5 h-5 text-amber-400" />
-            <span>[ 🟢 GUARDAR E REGISTAR OUTRO ]</span>
-          </button>
-
-          <button
-            type="button"
-            disabled={!description.trim()}
-            onClick={() => handleSave(false)}
-            className="w-full py-3 px-6 bg-slate-100 hover:bg-slate-200 disabled:opacity-40 text-slate-700 font-bold rounded-2xl text-xs transition-all text-center"
-          >
-            <span>Guardar e Voltar à Lista</span>
+            <CheckCircle2 className="w-5 h-5 text-amber-400" />
+            <span>[ 🟢 GUARDAR ITEM ]</span>
           </button>
         </div>
-      </div>
+      </form>
+
+      {/* MODAL DE MENSAGEM DE SUCESSO BEM VISÍVEL */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm animate-fade-in no-print">
+          <div className="bg-white border border-slate-200 rounded-3xl max-w-md w-full p-6 text-center shadow-2xl space-y-5">
+            <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto animate-bounce">
+              <CheckCircle2 className="w-10 h-10" />
+            </div>
+
+            <div>
+              <h2 className="text-xl font-black text-slate-900">Item Cadastrado com Sucesso!</h2>
+              <div className="mt-2 p-3 bg-slate-50 rounded-2xl border border-slate-200 inline-block text-left w-full">
+                <p className="text-sm font-extrabold text-twftw-navy">{lastSavedDescription}</p>
+                <p className="text-xs text-slate-500 font-semibold">Quantidade: {lastSavedQty} unidade(s)</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-600 font-bold">O que pretende fazer agora?</p>
+
+            <div className="space-y-2.5">
+              <button
+                type="button"
+                onClick={handleRegisterAnother}
+                className="w-full py-4 px-5 bg-twftw-navy hover:bg-slate-800 text-white font-black rounded-2xl text-xs transition-all shadow-md flex items-center justify-center space-x-2"
+              >
+                <Plus className="w-4 h-4 text-amber-400" />
+                <span>[ ➕ CADASTRAR OUTRO ITEM ]</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleGoToInventory}
+                className="w-full py-3.5 px-5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold rounded-2xl text-xs transition-all flex items-center justify-center space-x-2 border border-slate-300"
+              >
+                <ListFilter className="w-4 h-4 text-blue-600" />
+                <span>[ 📋 VER INVENTÁRIO / LISTA DE BENS ]</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
