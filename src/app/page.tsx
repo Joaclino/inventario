@@ -15,6 +15,7 @@ import {
   setFieldResponsibleName
 } from '@/lib/storage';
 import { Inventory, Asset, UserProfile } from '@/types/inventory';
+import TWFTWLogo from '@/components/TWFTWLogo';
 import {
   PlusCircle,
   Package,
@@ -98,7 +99,6 @@ export default function HomePage() {
     setInventoryTitle('');
     loadData();
 
-    // Redireciona imediatamente para o registo do primeiro item!
     router.push(`/inventory/${newInv.department_id}/new-asset`);
   };
 
@@ -113,18 +113,18 @@ export default function HomePage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-fade-in pb-16">
-      {/* BANNER PRINCIPAL TWFTW TEMA CLARO / BRANCO */}
+      {/* BANNER PRINCIPAL COM O LOGÓTIPO OFICIAL TWFTW */}
       <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 text-center relative overflow-hidden shadow-sm">
-        <div className="w-16 h-16 rounded-3xl bg-twftw-navy flex items-center justify-center text-white mx-auto shadow-md mb-4">
-          <Boxes className="w-9 h-9 text-amber-400" />
+        <div className="w-20 h-20 rounded-full bg-twftw-navy flex items-center justify-center mx-auto p-3 shadow-md mb-4">
+          <TWFTWLogo className="w-full h-full" />
         </div>
 
         <span className="text-xs font-bold uppercase tracking-wider text-twftw-navy bg-slate-100 px-3 py-1 rounded-full inline-block mb-2">
-          TWFTW Bible Translators
+          The Word For The World • Bible Translators
         </span>
 
         <h1 className="text-2xl sm:text-4xl font-black text-twftw-navy tracking-tight">
-          Inventário <span className="text-amber-600">de Bens & Ativos</span>
+          Inventário <span className="text-amber-500">de Bens & Ativos</span>
         </h1>
         <p className="text-xs sm:text-sm text-slate-600 max-w-lg mx-auto mt-2 leading-relaxed font-medium">
           Plataforma simples de levantamento físico. Introduza o seu nome para ver ou criar o seu inventário no terreno.
@@ -294,8 +294,8 @@ export default function HomePage() {
             </button>
 
             <div className="text-center mb-6">
-              <div className="w-12 h-12 rounded-2xl bg-slate-100 text-twftw-navy flex items-center justify-center mx-auto mb-2">
-                <PlusCircle className="w-7 h-7 text-amber-600" />
+              <div className="w-12 h-12 rounded-full bg-twftw-navy text-amber-400 flex items-center justify-center mx-auto p-2 mb-2">
+                <TWFTWLogo className="w-full h-full" />
               </div>
               <h2 className="text-xl font-black text-twftw-navy">Criar Novo Inventário</h2>
               <p className="text-xs text-slate-500 mt-1">Dê um nome ao seu inventário para começar</p>
