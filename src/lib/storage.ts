@@ -15,18 +15,19 @@ import {
   INITIAL_LOCATIONS,
   INITIAL_STATES
 } from './mockData';
+import { createClient } from './supabase/client';
 
 const KEYS = {
-  DEPARTMENTS: 'inventario_departments_v3',
-  CATEGORIES: 'inventario_categories_v3',
-  LOCATIONS: 'inventario_locations_v3',
-  STATES: 'inventario_states_v3',
-  INVENTORIES: 'inventario_inventories_v3',
-  ASSETS: 'inventario_assets_v3',
-  AUDIT_LOGS: 'inventario_audit_logs_v3',
-  USER_PROFILE: 'inventario_current_user_v3',
-  ADMIN_AUTH: 'inventario_admin_authenticated_v3',
-  FIELD_RESPONSIBLE_NAME: 'inventario_field_responsible_v3'
+  DEPARTMENTS: 'inventario_departments_v4',
+  CATEGORIES: 'inventario_categories_v4',
+  LOCATIONS: 'inventario_locations_v4',
+  STATES: 'inventario_states_v4',
+  INVENTORIES: 'inventario_inventories_v4',
+  ASSETS: 'inventario_assets_v4',
+  AUDIT_LOGS: 'inventario_audit_logs_v4',
+  USER_PROFILE: 'inventario_current_user_v4',
+  ADMIN_AUTH: 'inventario_admin_authenticated_v4',
+  FIELD_RESPONSIBLE_NAME: 'inventario_field_responsible_v4'
 };
 
 function isBrowser(): boolean {
@@ -75,7 +76,121 @@ export function clearAllStorageData(): void {
 }
 
 // -------------------------------------------------------------
-// CADASTRO BÁSICO DO UTILIZADOR NO TERRENO (NOME DO RESPONSÁVEL)
+// SINCRONIZAÇÃO EM TEMPO REAL COM O SUPABASE
+// -------------------------------------------------------------
+export async function syncWithSupabase(): Promise<{ inventories: Inventory[]; assets: Asset[] }> {
+  if (!isBrowser()) return { inventories: getInventories(), assets: getAssets() };
+
+  const supabase = createClient();
+  if (!supabase) return { inventories: getInventories(), assets: getAssets() };
+
+  try {
+    // 1. Buscar inventários do Supabase
+    const { data: remoteInventories, error: invError } = await supabase
+      .from('inventories')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (!invError && remoteInventories) {
+      const formattedInvs: Inventory[] = remoteInventories.map((i: any) => ({
+        id: i.id,
+        department_id: i.department_id || 'dept-geral',
+        title: i.title,
+        status: i.status || 'in_progress',
+        start_date: i.start_date || new Date().toISOString().split('T')[0],
+        end_date: i.end_date,
+        responsible_name: i.responsible_name,
+        general_notes: i.general_notes || '',
+        responsible_signature: i.responsible_signature,
+        admin_validation_signature: i.admin_validation_signature,
+        validated_by: i.validated_by,
+        validated_at: i.validated_at,
+        created_at: i.created_at,
+        updated_at: i.updated_at
+      }));
+
+      // Mesclar inventários remotos com locais
+      const localInvs = getInventories();
+      const invMap = new Map<string, Inventory>();
+
+      localInvs.forEach(inv => invMap.set(inv.id, inv));
+      formattedInvs.forEach(inv => invMap.set(inv.id, inv));
+
+      const mergedInvs = Array.from(invMap.values());
+      setItem(KEYS.INVENTORIES, mergedInvs);
+    }
+
+    // 2. Buscar bens/ativos do Supabase
+    const { data: remoteAssets, error: astError } = await supabase
+      .from('assets')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (!astError && remoteAssets) {
+      const formattedAssets: Asset[] = remoteAssets.map((a: any) => ({
+        id: a.id,
+        inventory_id: a.inventory_id,
+        department_id: a.department_id || 'dept-geral',
+        asset_code: a.asset_code,
+        internal_id: a.internal_id || a.asset_code,
+        category_id: a.category_id,
+        subcategory_id: a.subcategory_id,
+        category_name: a.category_name || 'Geral',
+        subcategory_name: a.subcategory_name || '',
+        description: a.description,
+        brand: a.brand || '',
+        model: a.model || '',
+        serial_number: a.serial_number || '',
+        existing_id: a.existing_id || '',
+        is_quantity_controlled: !!a.is_quantity_controlled,
+        quantity: a.quantity || 1,
+        unit: a.unit || 'un',
+        responsible_name: a.responsible_name,
+        location_id: a.location_id,
+        location_name: a.location_name || 'Geral',
+        room: a.room || '',
+        building: a.building || '',
+        state_id: a.state_id,
+        state_name: a.state_name || 'Bom',
+        situation: a.situation || 'Em uso',
+        acquisition_value: a.acquisition_value,
+        currency: a.currency || 'Kz',
+        acquisition_date: a.acquisition_date,
+        supplier: a.supplier,
+        invoice_number: a.invoice_number,
+        estimated_current_value: a.estimated_current_value,
+        physical_check_status: a.physical_check_status || 'found',
+        notes: a.notes || '',
+        photos: a.photos || [],
+        first_registered_at: a.first_registered_at,
+        last_inventoried_at: a.last_inventoried_at,
+        last_confirmed_by: a.last_confirmed_by,
+        last_confirmed_state: a.last_confirmed_state,
+        created_at: a.created_at,
+        updated_at: a.updated_at
+      }));
+
+      const localAssets = getAssets();
+      const astMap = new Map<string, Asset>();
+
+      localAssets.forEach(ast => astMap.set(ast.id, ast));
+      formattedAssets.forEach(ast => astMap.set(ast.id, ast));
+
+      const mergedAssets = Array.from(astMap.values());
+      setItem(KEYS.ASSETS, mergedAssets);
+    }
+  } catch (err) {
+    console.error('Erro na sincronização com o Supabase:', err);
+  }
+
+  return {
+    inventories: getInventories(),
+    assets: getAssets()
+  };
+}
+
+// -------------------------------------------------------------
+// CADASTRO BÁSICO DO UTILIZADOR NO TERRENO
 // -------------------------------------------------------------
 export function getFieldResponsibleName(): string {
   if (!isBrowser()) return '';
@@ -97,7 +212,6 @@ export function isAdminAuthenticated(): boolean {
 
 export function authenticateAdmin(password: string): boolean {
   if (!isBrowser()) return false;
-  // Senha do Admin Joaclinop (ex: joaclinop123 ou admin123 ou 1234)
   const validPasswords = ['joaclinop123', 'admin123', 'admin', 'twftw123', '1234'];
   const isValid = validPasswords.includes(password.trim().toLowerCase());
   if (isValid) {
@@ -304,10 +418,12 @@ export function saveAssetState(state: Partial<AssetState> & { name: string; code
 }
 
 // -------------------------------------------------------------
-// INVENTÁRIOS SIMPLES
+// INVENTÁRIOS SIMPLES (COM SYNC SUPABASE)
 // -------------------------------------------------------------
 export function getInventories(): Inventory[] {
   initializeStorage();
+  // Disparar sincronização assíncrona com Supabase em segundo plano
+  syncWithSupabase().catch(err => console.error(err));
   return getItem(KEYS.INVENTORIES, []);
 }
 
@@ -343,6 +459,33 @@ export function saveInventory(inv: Partial<Inventory> & { responsible_name: stri
     inventories.unshift(updatedInv);
   }
   setItem(KEYS.INVENTORIES, inventories);
+
+  // Enviar assincronamente para a base de dados Supabase
+  const supabase = createClient();
+  if (supabase) {
+    supabase
+      .from('inventories')
+      .upsert({
+        id: updatedInv.id,
+        department_id: updatedInv.department_id,
+        title: updatedInv.title,
+        status: updatedInv.status,
+        start_date: updatedInv.start_date,
+        end_date: updatedInv.end_date,
+        responsible_name: updatedInv.responsible_name,
+        general_notes: updatedInv.general_notes,
+        responsible_signature: updatedInv.responsible_signature,
+        admin_validation_signature: updatedInv.admin_validation_signature,
+        validated_by: updatedInv.validated_by,
+        validated_at: updatedInv.validated_at,
+        created_at: updatedInv.created_at,
+        updated_at: updatedInv.updated_at
+      })
+      .then(({ error }) => {
+        if (error) console.error('Erro ao guardar inventário no Supabase:', error);
+      });
+  }
+
   return updatedInv;
 }
 
@@ -355,7 +498,7 @@ export function generateNextAssetCode(categoryCode?: string, isQuantity?: boolea
 
   const matchingCodes = assets
     .map(a => a.asset_code)
-    .filter(code => code.startsWith(prefix));
+    .filter(code => code && code.startsWith(prefix));
 
   let maxNum = 0;
   matchingCodes.forEach(code => {
@@ -372,7 +515,7 @@ export function generateNextAssetCode(categoryCode?: string, isQuantity?: boolea
 }
 
 // -------------------------------------------------------------
-// BENS E ATIVOS (ASSETS)
+// BENS E ATIVOS (ASSETS COM SYNC SUPABASE)
 // -------------------------------------------------------------
 export function getAssets(): Asset[] {
   initializeStorage();
@@ -381,7 +524,7 @@ export function getAssets(): Asset[] {
 
 export function getAssetById(idOrCode: string): Asset | undefined {
   const assets = getAssets();
-  return assets.find(a => a.id === idOrCode || a.asset_code.toUpperCase() === idOrCode.toUpperCase());
+  return assets.find(a => a.id === idOrCode || (a.asset_code && a.asset_code.toUpperCase() === idOrCode.toUpperCase()));
 }
 
 export function saveAsset(assetData: Partial<Asset> & { description: string; responsible_name: string }): Asset {
@@ -455,6 +598,43 @@ export function saveAsset(assetData: Partial<Asset> & { description: string; res
   }
 
   setItem(KEYS.ASSETS, assets);
+
+  // Enviar assincronamente para a base de dados Supabase
+  const supabase = createClient();
+  if (supabase) {
+    supabase
+      .from('assets')
+      .upsert({
+        id: updatedAsset.id,
+        inventory_id: updatedAsset.inventory_id,
+        department_id: updatedAsset.department_id,
+        internal_id: updatedAsset.internal_id,
+        asset_code: updatedAsset.asset_code,
+        category_name: updatedAsset.category_name,
+        subcategory_name: updatedAsset.subcategory_name,
+        description: updatedAsset.description,
+        brand: updatedAsset.brand,
+        model: updatedAsset.model,
+        serial_number: updatedAsset.serial_number,
+        is_quantity_controlled: updatedAsset.is_quantity_controlled,
+        quantity: updatedAsset.quantity,
+        unit: updatedAsset.unit,
+        responsible_name: updatedAsset.responsible_name,
+        location_name: updatedAsset.location_name,
+        room: updatedAsset.room,
+        building: updatedAsset.building,
+        state_name: updatedAsset.state_name,
+        situation: updatedAsset.situation,
+        physical_check_status: updatedAsset.physical_check_status,
+        notes: updatedAsset.notes,
+        created_at: updatedAsset.created_at,
+        updated_at: updatedAsset.updated_at
+      })
+      .then(({ error }) => {
+        if (error) console.error('Erro ao guardar bem no Supabase:', error);
+      });
+  }
+
   return updatedAsset;
 }
 
@@ -468,6 +648,22 @@ export function updatePhysicalCheckStatus(assetId: string, status: PhysicalCheck
   if (confirmedBy) asset.last_confirmed_by = confirmedBy;
 
   setItem(KEYS.ASSETS, assets);
+
+  const supabase = createClient();
+  if (supabase) {
+    supabase
+      .from('assets')
+      .update({
+        physical_check_status: status,
+        last_inventoried_at: asset.last_inventoried_at,
+        last_confirmed_by: confirmedBy
+      })
+      .eq('id', assetId)
+      .then(({ error }) => {
+        if (error) console.error('Erro ao atualizar conferência no Supabase:', error);
+      });
+  }
+
   return asset;
 }
 
@@ -478,6 +674,12 @@ export function deleteAsset(assetId: string): boolean {
 
   const filtered = assets.filter(a => a.id !== assetId);
   setItem(KEYS.ASSETS, filtered);
+
+  const supabase = createClient();
+  if (supabase) {
+    supabase.from('assets').delete().eq('id', assetId).then();
+  }
+
   return true;
 }
 
