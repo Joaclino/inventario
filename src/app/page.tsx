@@ -12,7 +12,8 @@ import {
   getCurrentUser,
   isUserAdmin,
   getFieldResponsibleName,
-  setFieldResponsibleName
+  setFieldResponsibleName,
+  syncWithSupabase
 } from '@/lib/storage';
 import { Inventory, Asset, UserProfile } from '@/types/inventory';
 import TWFTWLogo from '@/components/TWFTWLogo';
@@ -59,6 +60,11 @@ export default function HomePage() {
     setUser(currentUser);
 
     loadData(savedName);
+
+    // Sincronizar em segundo plano com o Supabase ao abrir a página
+    syncWithSupabase().then(() => {
+      loadData(savedName);
+    });
   }, []);
 
   const loadData = (respName?: string) => {
