@@ -508,14 +508,18 @@ export function saveInventory(inv: Partial<Inventory> & { responsible_name: stri
   const existingIndex = inventories.findIndex(i => i.id === inv.id);
   const now = new Date().toISOString();
 
+  const defaultDeptId = '3f048f13-53f0-478d-8fc3-538c70b493bd';
+  const isValidUuid = (str?: string) => str && str.length >= 32;
+
   let updatedInv: Inventory;
   if (existingIndex >= 0) {
     updatedInv = { ...inventories[existingIndex], ...inv, updated_at: now };
     inventories[existingIndex] = updatedInv;
   } else {
-    const deptId = inv.department_id || `dept-${Date.now()}`;
+    const deptId = isValidUuid(inv.department_id) ? inv.department_id! : defaultDeptId;
+    const invId = isValidUuid(inv.id) ? inv.id! : (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `inv-${Date.now()}`);
     updatedInv = {
-      id: inv.id || `inv-${Date.now()}`,
+      id: invId,
       department_id: deptId,
       title: inv.title,
       status: inv.status || 'in_progress',
@@ -621,9 +625,14 @@ export function saveAsset(assetData: Partial<Asset> & { description: string; res
     };
     assets[existingIndex] = updatedAsset;
   } else {
+    const isValidUuid = (str?: string) => str && str.length >= 32;
+    const defaultDeptId = '3f048f13-53f0-478d-8fc3-538c70b493bd';
+    const astId = isValidUuid(assetData.id) ? assetData.id! : (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `ast-${Date.now()}`);
+    const deptId = isValidUuid(assetData.department_id) ? assetData.department_id! : defaultDeptId;
+
     updatedAsset = {
-      id: assetData.id || `ast-${Date.now()}`,
-      department_id: assetData.department_id || 'dept-geral',
+      id: astId,
+      department_id: deptId,
       inventory_id: assetData.inventory_id,
       asset_code: code,
       internal_id: assetData.internal_id || code,
