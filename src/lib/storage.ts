@@ -79,10 +79,10 @@ export function clearAllStorageData(): void {
 // SINCRONIZAÇÃO EM TEMPO REAL COM O SUPABASE
 // -------------------------------------------------------------
 export async function syncWithSupabase(): Promise<{ inventories: Inventory[]; assets: Asset[] }> {
-  if (!isBrowser()) return { inventories: getInventories(), assets: getAssets() };
+  if (!isBrowser()) return { inventories: getItem(KEYS.INVENTORIES, []), assets: getItem(KEYS.ASSETS, []) };
 
   const supabase = createClient();
-  if (!supabase) return { inventories: getInventories(), assets: getAssets() };
+  if (!supabase) return { inventories: getItem(KEYS.INVENTORIES, []), assets: getItem(KEYS.ASSETS, []) };
 
   try {
     // 1. Buscar inventários do Supabase
@@ -109,8 +109,8 @@ export async function syncWithSupabase(): Promise<{ inventories: Inventory[]; as
         updated_at: i.updated_at
       }));
 
-      // Mesclar inventários remotos com locais
-      const localInvs = getInventories();
+      // Mesclar inventários remotos com locais (sem recursão)
+      const localInvs = getItem<Inventory[]>(KEYS.INVENTORIES, []);
       const invMap = new Map<string, Inventory>();
 
       localInvs.forEach(inv => invMap.set(inv.id, inv));
@@ -118,6 +118,29 @@ export async function syncWithSupabase(): Promise<{ inventories: Inventory[]; as
 
       const mergedInvs = Array.from(invMap.values());
       setItem(KEYS.INVENTORIES, mergedInvs);
+
+      // Submeter qualquer inventário local pendente para o Supabase
+      localInvs.forEach(localInv => {
+        const existsInRemote = remoteInventories.some((r: any) => r.id === localInv.id);
+        if (!existsInRemote) {
+          supabase.from('inventories').upsert({
+            id: localInv.id,
+            department_id: localInv.department_id,
+            title: localInv.title,
+            status: localInv.status,
+            start_date: localInv.start_date,
+            end_date: localInv.end_date,
+            responsible_name: localInv.responsible_name,
+            general_notes: localInv.general_notes,
+            responsible_signature: localInv.responsible_signature,
+            admin_validation_signature: localInv.admin_validation_signature,
+            validated_by: localInv.validated_by,
+            validated_at: localInv.validated_at,
+            created_at: localInv.created_at,
+            updated_at: localInv.updated_at
+          }).then();
+        }
+      });
     }
 
     // 2. Buscar bens/ativos do Supabase
@@ -170,7 +193,7 @@ export async function syncWithSupabase(): Promise<{ inventories: Inventory[]; as
         updated_at: a.updated_at
       }));
 
-      const localAssets = getAssets();
+      const localAssets = getItem<Asset[]>(KEYS.ASSETS, []);
       const astMap = new Map<string, Asset>();
 
       localAssets.forEach(ast => astMap.set(ast.id, ast));
@@ -178,14 +201,62 @@ export async function syncWithSupabase(): Promise<{ inventories: Inventory[]; as
 
       const mergedAssets = Array.from(astMap.values());
       setItem(KEYS.ASSETS, mergedAssets);
+
+      localAssets.forEach(localAst => {
+        const existsInRemote = remoteAssets.some((r: any) => r.id === localAst.id);
+        if (!existsInRemote) {
+          supabase.from('assets').upsert({
+            id: localAst.id,
+            inventory_id: localAst.inventory_id,
+            department_id: localAst.department_id,
+            asset_code: localAst.asset_code,
+            internal_id: localAst.internal_id,
+            category_id: localAst.category_id,
+            subcategory_id: localAst.subcategory_id,
+            category_name: localAst.category_name,
+            subcategory_name: localAst.subcategory_name,
+            description: localAst.description,
+            brand: localAst.brand,
+            model: localAst.model,
+            serial_number: localAst.serial_number,
+            existing_id: localAst.existing_id,
+            is_quantity_controlled: localAst.is_quantity_controlled,
+            quantity: localAst.quantity,
+            unit: localAst.unit,
+            responsible_name: localAst.responsible_name,
+            location_id: localAst.location_id,
+            location_name: localAst.location_name,
+            room: localAst.room,
+            building: localAst.building,
+            state_id: localAst.state_id,
+            state_name: localAst.state_name,
+            situation: localAst.situation,
+            acquisition_value: localAst.acquisition_value,
+            currency: localAst.currency,
+            acquisition_date: localAst.acquisition_date,
+            supplier: localAst.supplier,
+            invoice_number: localAst.invoice_number,
+            estimated_current_value: localAst.estimated_current_value,
+            physical_check_status: localAst.physical_check_status,
+            notes: localAst.notes,
+            photos: localAst.photos,
+            first_registered_at: localAst.first_registered_at,
+            last_inventoried_at: localAst.last_inventoried_at,
+            last_confirmed_by: localAst.last_confirmed_by,
+            last_confirmed_state: localAst.last_confirmed_state,
+            created_at: localAst.created_at,
+            updated_at: localAst.updated_at
+          }).then();
+        }
+      });
     }
   } catch (err) {
     console.error('Erro na sincronização com o Supabase:', err);
   }
 
   return {
-    inventories: getInventories(),
-    assets: getAssets()
+    inventories: getItem<Inventory[]>(KEYS.INVENTORIES, []),
+    assets: getItem<Asset[]>(KEYS.ASSETS, [])
   };
 }
 
@@ -422,8 +493,6 @@ export function saveAssetState(state: Partial<AssetState> & { name: string; code
 // -------------------------------------------------------------
 export function getInventories(): Inventory[] {
   initializeStorage();
-  // Disparar sincronização assíncrona com Supabase em segundo plano
-  syncWithSupabase().catch(err => console.error(err));
   return getItem(KEYS.INVENTORIES, []);
 }
 

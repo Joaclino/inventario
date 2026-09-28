@@ -63,16 +63,16 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-slate-200 shadow-sm no-print">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo Oficial TWFTW Bible Translators */}
+          {/* Logo Oficial TWFTW - Angola */}
           <Link href="/" className="flex items-center space-x-3 group">
             <div className="w-10 h-10 rounded-full bg-twftw-navy flex items-center justify-center p-1.5 shadow-md group-hover:scale-105 transition-transform">
               <TWFTWLogo className="w-full h-full" />
             </div>
             <div>
               <span className="text-lg font-black text-twftw-navy tracking-tight block leading-none">
-                TWFTW<span className="text-amber-500">INVENTÁRIO</span>
+                TWFTW - ANGOLA
               </span>
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">The Word For The World</span>
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">The Word For The World - Angola</span>
             </div>
           </Link>
 

@@ -67,7 +67,7 @@ export default function AdminDashboardPage() {
               className="py-3 px-5 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-2xl text-xs transition-all shadow-xl shadow-emerald-600/30 flex items-center space-x-2"
             >
               <FileSpreadsheet className="w-5 h-5" />
-              <span>[ EXPORTAR INVENTÁRIO GERAL (EXCEL) ]</span>
+              <span>Exportar Inventário Geral (Excel)</span>
             </button>
           </div>
         </div>

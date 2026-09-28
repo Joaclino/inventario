@@ -119,8 +119,8 @@ export function exportDepartmentInventoryToExcel(
   });
 
   const summaryRows = [
-    { Metrica: 'ORGANIZAÇÃO', Valor: 'INVENTÁRIO GERAL DE BENS E ATIVOS' },
-    { Metrica: 'DEPARTAMENTO', Valor: department.name },
+    { Metrica: 'ORGANIZAÇÃO', Valor: 'The Word For The World - Angola (TWFTW - Angola)' },
+    { Metrica: 'INVENTÁRIO', Valor: inventory?.title || department.name },
     { Metrica: 'RESPONSÁVEL PELO LEVANTAMENTO', Valor: inventory?.responsible_name || department.responsible_name },
     { Metrica: 'DATA DO RELATÓRIO', Valor: new Date().toLocaleDateString('pt-PT') },
     { Metrica: '', Valor: '' },
@@ -150,12 +150,12 @@ export function exportDepartmentInventoryToExcel(
   // FOLHA 3 — INFORMAÇÕES
   // -------------------------------------------------------------
   const infoRows = [
-    { Campo: 'Departamento', Informacao: department.name },
-    { Campo: 'Código do Departamento', Informacao: department.code },
+    { Campo: 'Organização', Informacao: 'The Word For The World - Angola (TWFTW - Angola)' },
+    { Campo: 'Inventário / Área', Informacao: inventory?.title || department.name },
     { Campo: 'Responsável pelo Levantamento', Informacao: inventory?.responsible_name || department.responsible_name },
     { Campo: 'Data de Início', Informacao: inventory?.start_date || '-' },
     { Campo: 'Data de Conclusão', Informacao: inventory?.end_date || 'Em andamento' },
-    { Campo: 'Estado do Inventário', Informacao: inventory?.status === 'validated' ? '🔵 Validado pelo Administrador' : inventory?.status === 'completed' ? '🟢 Concluído' : '🟡 Em Andamento' },
+    { Campo: 'Estado do Inventário', Informacao: inventory?.status === 'validated' ? 'Validado pelo Administrador' : inventory?.status === 'completed' ? 'Concluído' : 'Em Andamento' },
     { Campo: 'Observações Gerais', Informacao: inventory?.general_notes || 'Sem observações adicionais.' },
     { Campo: '', Informacao: '' },
     { Campo: 'Assinatura do Responsável pelo Levantamento', Informacao: inventory?.responsible_signature || 'Pendente de assinatura' },
@@ -169,8 +169,8 @@ export function exportDepartmentInventoryToExcel(
   XLSX.utils.book_append_sheet(wb, wsInfo, 'INFORMAÇÕES');
 
   // Fazer o download do ficheiro Excel
-  const safeDeptName = department.name.replace(/[^a-zA-Z0-9]/g, '_');
-  const filename = `Inventario_Geral_${safeDeptName}_2026.xlsx`;
+  const safeDeptName = (inventory?.title || department.name).replace(/[^a-zA-Z0-9]/g, '_');
+  const filename = `TWFTW_Angola_Inventario_${safeDeptName}_2026.xlsx`;
   XLSX.writeFile(wb, filename);
 }
 
@@ -186,7 +186,7 @@ export function exportAllInventoriesToExcel(
     const dept = departments.find(d => d.id === a.department_id);
     return {
       'Nº': index + 1,
-      'Departamento': dept?.name || 'Desconhecido',
+      'Departamento / Área': dept?.name || 'Geral',
       'Código Patrimonial': a.asset_code,
       'Categoria': a.category_name,
       'Subcategoria': a.subcategory_name || '-',
@@ -222,8 +222,8 @@ export function exportAllInventoriesToExcel(
     const totalValue = deptAssets.reduce((sum, a) => sum + (a.acquisition_value || 0), 0);
 
     return {
-      'Código Dept.': d.code,
-      'Departamento': d.name,
+      'Código': d.code,
+      'Área / Inventário': d.name,
       'Responsável': d.responsible_name,
       'Total Registos': deptAssets.length,
       'Total Itens/Qtd': totalQty,
@@ -241,9 +241,9 @@ export function exportAllInventoriesToExcel(
   // 3. INFORMAÇÕES DO SISTEMA
   const sysInfo = [
     { Parametro: 'SISTEMA', Valor: 'Inventário Geral de Bens e Ativos' },
-    { Parametro: 'ORGANIZAÇÃO', Valor: 'Organização Central' },
+    { Parametro: 'ORGANIZAÇÃO', Valor: 'The Word For The World - Angola (TWFTW - Angola)' },
     { Parametro: 'DATA DE EXTRAÇÃO', Valor: new Date().toLocaleString('pt-PT') },
-    { Parametro: 'TOTAL DE DEPARTAMENTOS', Valor: departments.length },
+    { Parametro: 'TOTAL DE ÁREAS', Valor: departments.length },
     { Parametro: 'TOTAL GERAL DE ATIVOS', Valor: allAssets.length },
     { Parametro: 'VALOR TOTAL GERAL (KZ)', Valor: formatCurrencyKz(allAssets.reduce((s, a) => s + (a.acquisition_value || 0), 0)) }
   ];

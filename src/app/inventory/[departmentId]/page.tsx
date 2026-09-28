@@ -35,7 +35,8 @@ import {
   LayoutGrid,
   FileDown,
   XCircle,
-  AlertTriangle
+  AlertTriangle,
+  Image as ImageIcon
 } from 'lucide-react';
 
 export default function InventoryDetailPage() {
@@ -135,7 +136,7 @@ export default function InventoryDetailPage() {
             className="py-2.5 px-4 bg-twftw-navy hover:bg-slate-800 text-white font-extrabold rounded-xl text-xs flex items-center space-x-1.5 shadow"
           >
             <FileDown className="w-4 h-4 text-amber-400" />
-            <span>[ 📄 EXPORTAR PDF / IMPRIMIR ]</span>
+            <span>Exportar PDF / Imprimir</span>
           </button>
 
           <button
@@ -172,7 +173,7 @@ export default function InventoryDetailPage() {
             className="py-3.5 px-6 bg-twftw-navy hover:bg-slate-800 text-white font-extrabold rounded-2xl text-xs transition-all shadow-md flex items-center justify-center space-x-2"
           >
             <PlusCircle className="w-5 h-5 text-amber-400" />
-            <span>[ ➕ REGISTAR NOVO ITEM ]</span>
+            <span>Registar Novo Item</span>
           </Link>
         </div>
       </div>
@@ -295,7 +296,10 @@ export default function InventoryDetailPage() {
                         <td className="py-3 px-4">
                           <div className="font-bold text-slate-900">{asset.description}</div>
                           {asset.photos && asset.photos.length > 0 && (
-                            <span className="text-[10px] text-blue-600 font-semibold">📷 Foto anexada</span>
+                            <span className="text-[10px] text-blue-600 font-semibold flex items-center space-x-1 mt-0.5">
+                              <ImageIcon className="w-3 h-3 text-blue-600 inline mr-0.5" />
+                              <span>Foto anexada</span>
+                            </span>
                           )}
                         </td>
                         <td className="py-3 px-4 text-center font-bold text-slate-800">

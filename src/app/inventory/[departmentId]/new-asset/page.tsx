@@ -220,7 +220,7 @@ export default function NewAssetSimplePage() {
           <div className="grid grid-cols-2 gap-3">
             <label className="py-3.5 px-3 bg-twftw-navy hover:bg-slate-800 text-white font-bold rounded-2xl text-xs cursor-pointer flex flex-col items-center justify-center text-center shadow transition-all active:scale-95">
               <Camera className="w-6 h-6 mb-1 text-amber-400" />
-              <span>📷 TIRAR FOTO</span>
+              <span>Tirar Foto</span>
               <input
                 type="file"
                 accept="image/*"
@@ -232,7 +232,7 @@ export default function NewAssetSimplePage() {
 
             <label className="py-3.5 px-3 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 font-bold rounded-2xl text-xs cursor-pointer flex flex-col items-center justify-center text-center transition-all">
               <ImageIcon className="w-6 h-6 mb-1 text-blue-600" />
-              <span>🖼️ GALERIA</span>
+              <span>Galeria</span>
               <input
                 type="file"
                 accept="image/*"
@@ -311,7 +311,7 @@ export default function NewAssetSimplePage() {
             className="w-full py-4 px-6 bg-twftw-navy hover:bg-slate-800 disabled:opacity-40 text-white font-black rounded-2xl text-sm transition-all shadow-md flex items-center justify-center space-x-2 transform active:scale-95"
           >
             <CheckCircle2 className="w-5 h-5 text-amber-400" />
-            <span>[ 🟢 GUARDAR ITEM ]</span>
+            <span>Guardar Item</span>
           </button>
         </div>
       </form>
@@ -344,7 +344,7 @@ export default function NewAssetSimplePage() {
                 className="w-full py-4 px-5 bg-twftw-navy hover:bg-slate-800 text-white font-black rounded-2xl text-xs transition-all shadow-md flex items-center justify-center space-x-2"
               >
                 <Plus className="w-4 h-4 text-amber-400" />
-                <span>[ ➕ CADASTRAR OUTRO ITEM ]</span>
+                <span>Cadastrar Outro Item</span>
               </button>
 
               <button
@@ -353,7 +353,7 @@ export default function NewAssetSimplePage() {
                 className="w-full py-3.5 px-5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold rounded-2xl text-xs transition-all flex items-center justify-center space-x-2 border border-slate-300"
               >
                 <ListFilter className="w-4 h-4 text-blue-600" />
-                <span>[ 📋 VER INVENTÁRIO / LISTA DE BENS ]</span>
+                <span>Ver Lista de Bens</span>
               </button>
             </div>
           </div>

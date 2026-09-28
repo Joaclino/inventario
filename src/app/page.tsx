@@ -44,6 +44,7 @@ export default function HomePage() {
   const [allInventories, setAllInventories] = useState<Inventory[]>([]);
   const [assets, setAssets] = useState<Asset[]>([]);
   const [user, setUser] = useState<UserProfile | null>(null);
+  const [viewMode, setViewMode] = useState<'mine' | 'all'>('mine');
 
   // Modal para criar novo inventário
   const [modalOpen, setModalOpen] = useState(false);
@@ -117,30 +118,35 @@ export default function HomePage() {
 
   const isAdmin = isUserAdmin(user);
 
+  const displayedInventories = viewMode === 'all' || !responsibleName.trim()
+    ? allInventories
+    : myInventories;
+
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-fade-in pb-16">
-      {/* BANNER PRINCIPAL COM O LOGÓTIPO OFICIAL TWFTW */}
+      {/* BANNER PRINCIPAL COM O LOGÓTIPO OFICIAL TWFTW - ANGOLA */}
       <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 text-center relative overflow-hidden shadow-sm">
         <div className="w-20 h-20 rounded-full bg-twftw-navy flex items-center justify-center mx-auto p-3 shadow-md mb-4">
           <TWFTWLogo className="w-full h-full" />
         </div>
 
         <span className="text-xs font-bold uppercase tracking-wider text-twftw-navy bg-slate-100 px-3 py-1 rounded-full inline-block mb-2">
-          The Word For The World • Bible Translators
+          The Word For The World - Angola
         </span>
 
         <h1 className="text-2xl sm:text-4xl font-black text-twftw-navy tracking-tight">
           Inventário <span className="text-amber-500">de Bens & Ativos</span>
         </h1>
         <p className="text-xs sm:text-sm text-slate-600 max-w-lg mx-auto mt-2 leading-relaxed font-medium">
-          Plataforma simples de levantamento físico. Introduza o seu nome para ver ou criar o seu inventário no terreno.
+          Plataforma de levantamento físico patrimonial. Introduza o seu nome para consultar ou iniciar o seu inventário no terreno.
         </p>
 
-        {/* CADASTRO BÁSICO DO RESPONSÁVEL DO TERRENO */}
+        {/* CADASTRO BÁSICO DO RESPONSÁBEL DO TERRENO */}
         <div className="mt-6 max-w-md mx-auto bg-slate-50 border border-slate-200 rounded-2xl p-4 shadow-inner">
           <form onSubmit={handleSaveResponsibleName} className="space-y-3">
-            <label className="block text-xs font-extrabold uppercase text-twftw-navy text-left">
-              👤 Quem está a fazer o inventário? (O Seu Nome)
+            <label className="block text-xs font-extrabold uppercase text-twftw-navy text-left flex items-center space-x-1.5">
+              <User className="w-4 h-4 text-twftw-navy" />
+              <span>Quem está a fazer o inventário? (O Seu Nome)</span>
             </label>
             <div className="flex items-center space-x-2">
               <input
@@ -156,21 +162,22 @@ export default function HomePage() {
               />
               <button
                 type="submit"
-                className="py-3 px-4 bg-twftw-navy hover:bg-slate-800 text-white font-extrabold rounded-xl text-xs shadow transition-all flex items-center space-x-1"
+                className="py-3 px-4 bg-twftw-navy hover:bg-slate-800 text-white font-extrabold rounded-xl text-xs shadow transition-all flex items-center space-x-1.5"
               >
                 <UserCheck className="w-4 h-4 text-amber-400" />
                 <span>Guardar</span>
               </button>
             </div>
             {isResponsibleSaved && (
-              <p className="text-[11px] font-bold text-emerald-600 text-left flex items-center">
-                ✓ Nome confirmado: <span className="underline ml-1">{responsibleName}</span>
+              <p className="text-[11px] font-bold text-emerald-600 text-left flex items-center space-x-1">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>Nome confirmado: <span className="underline ml-1">{responsibleName}</span></span>
               </p>
             )}
           </form>
         </div>
 
-        {/* BOTÃO PRINCIPAL GIGANTE — CRIAR NOVO INVENTÁRIO */}
+        {/* BOTÃO PRINCIPAL — CRIAR NOVO INVENTÁRIO */}
         <div className="mt-6">
           <button
             onClick={() => {
@@ -182,35 +189,61 @@ export default function HomePage() {
             }}
             className="w-full sm:w-auto py-4 px-8 bg-twftw-navy hover:bg-slate-800 text-white font-black rounded-2xl text-base transition-all shadow-lg flex items-center justify-center space-x-3 transform active:scale-95 mx-auto"
           >
-            <PlusCircle className="w-6 h-6 text-amber-400" />
-            <span>[ ➕ CRIAR NOVO INVENTÁRIO ]</span>
+            <PlusCircle className="w-5 h-5 text-amber-400" />
+            <span>Criar Novo Inventário</span>
           </button>
         </div>
       </div>
 
-      {/* LISTA DOS INVENTÁRIOS DO RESPONSÁVEL */}
+      {/* LISTA DOS INVENTÁRIOS DO RESPONSÁVEL OU GERAIS */}
       <div>
-        <div className="flex items-center justify-between mb-4 px-1">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 px-1">
           <div>
             <h2 className="text-lg font-black text-twftw-navy tracking-tight">
-              {responsibleName ? `Inventários de: ${responsibleName}` : 'Todos os Inventários'}
+              {viewMode === 'mine' && responsibleName.trim()
+                ? `Inventários de: ${responsibleName}`
+                : `Todos os Inventários (${allInventories.length})`}
             </h2>
-            <p className="text-xs text-slate-500 font-medium">Lista de inventários registados no terreno</p>
+            <p className="text-xs text-slate-500 font-medium">Lista de inventários registados no terreno e sincronizados na nuvem</p>
           </div>
 
-          {isAdmin && allInventories.length > 0 && (
-            <button
-              onClick={handleResetData}
-              className="text-xs font-bold text-red-600 hover:text-red-700 flex items-center space-x-1"
-              title="Apagar dados e começar do zero"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-              <span>Limpar TUDO (Admin)</span>
-            </button>
-          )}
+          <div className="flex items-center space-x-2">
+            {/* Alternador de filtro: Meus vs Todos */}
+            {responsibleName.trim() && (
+              <div className="flex items-center bg-slate-200 p-1 rounded-2xl">
+                <button
+                  onClick={() => setViewMode('mine')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                    viewMode === 'mine' ? 'bg-white text-twftw-navy shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Os Meus
+                </button>
+                <button
+                  onClick={() => setViewMode('all')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                    viewMode === 'all' ? 'bg-white text-twftw-navy shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Ver Todos ({allInventories.length})
+                </button>
+              </div>
+            )}
+
+            {isAdmin && allInventories.length > 0 && (
+              <button
+                onClick={handleResetData}
+                className="text-xs font-bold text-red-600 hover:text-red-700 flex items-center space-x-1"
+                title="Apagar dados e começar do zero"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Limpar TUDO (Admin)</span>
+              </button>
+            )}
+          </div>
         </div>
 
-        {myInventories.length === 0 ? (
+        {displayedInventories.length === 0 ? (
           <div className="bg-white border border-slate-200 rounded-3xl p-10 text-center text-slate-500 space-y-4 shadow-sm">
             <Package className="w-12 h-12 mx-auto text-slate-400" />
             <div>
@@ -218,7 +251,7 @@ export default function HomePage() {
                 {responsibleName ? `Nenhum inventário encontrado para "${responsibleName}"` : 'Nenhum inventário criado'}
               </h3>
               <p className="text-xs text-slate-500 max-w-sm mx-auto mt-1">
-                Clique no botão para criar o seu inventário de forma super simples!
+                Clique no botão para criar o seu inventário de forma simples e rápida.
               </p>
             </div>
             <button
@@ -237,7 +270,7 @@ export default function HomePage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {myInventories.map((inv) => {
+            {displayedInventories.map((inv) => {
               const deptAssets = assets.filter(a => a.department_id === inv.department_id || a.inventory_id === inv.id);
               const totalItems = deptAssets.reduce((sum, a) => sum + (a.quantity || 1), 0);
 
@@ -267,18 +300,18 @@ export default function HomePage() {
                   <div className="grid grid-cols-2 gap-2 pt-3 border-t border-slate-100">
                     <Link
                       href={`/inventory/${inv.department_id}/new-asset`}
-                      className="py-3 px-3 bg-twftw-navy hover:bg-slate-800 text-white font-bold rounded-2xl text-xs text-center flex items-center justify-center space-x-1 shadow transition-all"
+                      className="py-3 px-3 bg-twftw-navy hover:bg-slate-800 text-white font-bold rounded-2xl text-xs text-center flex items-center justify-center space-x-1.5 shadow transition-all"
                     >
                       <Plus className="w-4 h-4 text-amber-400" />
-                      <span>➕ Registar Item</span>
+                      <span>Registar Item</span>
                     </Link>
 
                     <Link
                       href={`/inventory/${inv.department_id}`}
-                      className="py-3 px-3 bg-slate-100 hover:bg-slate-200 text-twftw-navy font-bold rounded-2xl text-xs text-center flex items-center justify-center space-x-1 transition-all"
+                      className="py-3 px-3 bg-slate-100 hover:bg-slate-200 text-twftw-navy font-bold rounded-2xl text-xs text-center flex items-center justify-center space-x-1.5 transition-all"
                     >
                       <Package className="w-4 h-4 text-blue-600" />
-                      <span>📋 Ver Lista</span>
+                      <span>Ver Lista</span>
                     </Link>
                   </div>
                 </div>
@@ -341,8 +374,8 @@ export default function HomePage() {
                   type="submit"
                   className="w-full py-4 px-6 bg-twftw-navy hover:bg-slate-800 text-white font-black rounded-2xl text-sm shadow-md transition-all flex items-center justify-center space-x-2"
                 >
-                  <Sparkles className="w-5 h-5 text-amber-400" />
-                  <span>[ 🚀 INICIAR LEVANTAMENTO ]</span>
+                  <Sparkles className="w-4 h-4 text-amber-400" />
+                  <span>Iniciar Levantamento</span>
                 </button>
               </div>
             </form>

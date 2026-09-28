@@ -73,7 +73,7 @@ export default function AssetDetailPage() {
             className="py-2 px-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs flex items-center space-x-1.5 shadow-lg shadow-blue-600/20"
           >
             <QrCode className="w-4 h-4" />
-            <span>[ GERAR QR CODE ]</span>
+            <span>Gerar QR Code</span>
           </button>
 
           <button
@@ -81,7 +81,7 @@ export default function AssetDetailPage() {
             className="py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold rounded-xl text-xs flex items-center space-x-1.5"
           >
             <Printer className="w-4 h-4 text-blue-400" />
-            <span>[ IMPRIMIR ETIQUETA ]</span>
+            <span>Imprimir Etiqueta</span>
           </button>
         </div>
       </div>
