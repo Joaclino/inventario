@@ -23,7 +23,8 @@ import {
   X,
   Lock,
   LogOut,
-  KeyRound
+  KeyRound,
+  FileText
 } from 'lucide-react';
 
 export default function Navbar() {
@@ -91,13 +92,25 @@ export default function Navbar() {
             <Link
               href="/departments"
               className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 ${
-                pathname.startsWith('/departments') || pathname.startsWith('/inventory')
+                pathname.startsWith('/departments') || (pathname.startsWith('/inventory') && pathname !== '/inventory/blank-form')
                   ? 'bg-twftw-navy text-white shadow-sm'
                   : 'text-slate-700 hover:text-twftw-navy hover:bg-slate-100'
               }`}
             >
               <Building2 className="w-4 h-4" />
               <span>Inventários</span>
+            </Link>
+
+            <Link
+              href="/inventory/blank-form"
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 ${
+                pathname === '/inventory/blank-form'
+                  ? 'bg-twftw-navy text-white shadow-sm'
+                  : 'text-slate-700 hover:text-twftw-navy hover:bg-slate-100'
+              }`}
+            >
+              <FileText className="w-4 h-4" />
+              <span>Folha Manual (A4)</span>
             </Link>
 
             {/* Links Exclusivos do Admin (Joaclinop) */}

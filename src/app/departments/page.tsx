@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { getInventories, getAssets, syncWithSupabase } from '@/lib/storage';
 import { Inventory, Asset } from '@/types/inventory';
-import { Building2, Plus, CheckCircle2, Clock, Search, ChevronRight, Package, User } from 'lucide-react';
+import { Building2, Plus, CheckCircle2, Clock, Search, ChevronRight, Package, User, Printer } from 'lucide-react';
 
 export default function DepartmentsPage() {
   const [inventories, setInventories] = useState<Inventory[]>([]);
@@ -40,15 +40,25 @@ export default function DepartmentsPage() {
           <p className="text-xs text-slate-500 font-medium">Lista de todos os inventários registados na nuvem (TWFTW - Angola)</p>
         </div>
 
-        <div className="relative">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3.5" />
-          <input
-            type="text"
-            placeholder="Pesquisar por área ou responsável..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full sm:w-72 bg-white border border-slate-300 rounded-2xl pl-9 pr-4 py-2.5 text-xs text-slate-900 font-bold placeholder-slate-400 focus:outline-none focus:border-twftw-navy shadow-sm"
-          />
+        <div className="flex flex-col sm:flex-row items-center gap-3">
+          <div className="relative w-full sm:w-auto">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3.5" />
+            <input
+              type="text"
+              placeholder="Pesquisar por área ou responsável..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full sm:w-64 bg-white border border-slate-300 rounded-2xl pl-9 pr-4 py-2.5 text-xs text-slate-900 font-bold placeholder-slate-400 focus:outline-none focus:border-twftw-navy shadow-sm"
+            />
+          </div>
+
+          <Link
+            href="/inventory/blank-form"
+            className="w-full sm:w-auto py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-twftw-navy border border-slate-300 font-bold rounded-2xl text-xs flex items-center justify-center space-x-1.5 transition-all"
+          >
+            <Printer className="w-4 h-4 text-blue-600" />
+            <span>Folha Manual (A4)</span>
+          </Link>
         </div>
       </div>
 

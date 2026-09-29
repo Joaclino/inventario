@@ -32,7 +32,9 @@ import {
   X,
   UserCheck,
   Building2,
-  Search
+  Search,
+  Printer,
+  FileText
 } from 'lucide-react';
 
 export default function HomePage() {
@@ -177,8 +179,8 @@ export default function HomePage() {
           </form>
         </div>
 
-        {/* BOTÃO PRINCIPAL — CRIAR NOVO INVENTÁRIO */}
-        <div className="mt-6">
+        {/* BOTÕES PRINCIPAIS — CRIAR INVENTÁRIO OU IMPRIMIR FOLHA EM BRANCO */}
+        <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
           <button
             onClick={() => {
               if (!responsibleName.trim()) {
@@ -187,11 +189,19 @@ export default function HomePage() {
               }
               setModalOpen(true);
             }}
-            className="w-full sm:w-auto py-4 px-8 bg-twftw-navy hover:bg-slate-800 text-white font-black rounded-2xl text-base transition-all shadow-lg flex items-center justify-center space-x-3 transform active:scale-95 mx-auto"
+            className="w-full sm:w-auto py-4 px-8 bg-twftw-navy hover:bg-slate-800 text-white font-black rounded-2xl text-base transition-all shadow-lg flex items-center justify-center space-x-3 transform active:scale-95"
           >
             <PlusCircle className="w-5 h-5 text-amber-400" />
             <span>Criar Novo Inventário</span>
           </button>
+
+          <Link
+            href="/inventory/blank-form"
+            className="w-full sm:w-auto py-4 px-6 bg-slate-100 hover:bg-slate-200 text-twftw-navy border border-slate-300 font-bold rounded-2xl text-sm transition-all flex items-center justify-center space-x-2"
+          >
+            <Printer className="w-5 h-5 text-blue-600" />
+            <span>Folha de Inventário Manual (A4)</span>
+          </Link>
         </div>
       </div>
 
